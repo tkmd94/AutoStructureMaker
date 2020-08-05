@@ -1,0 +1,130 @@
+﻿<UserControl x:Class="AutoStructure.UC_AddMargin"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:AutoStructure"
+             mc:Ignorable="d" >
+    <Border  BorderThickness="1" BorderBrush="Black" Margin="5">
+        <Grid x:Name="AddMarginPanel" Height="Auto" ShowGridLines="True" Margin="5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
+            <StackPanel Orientation="Vertical" Grid.Column="0">
+                <TextBlock Text="Operation Type" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"
+                       Margin="5"/>
+                <ComboBox x:Name="OpCtrlComboBox" Margin="5" Width="140"
+                      DisplayMemberPath="Label"
+                      SelectedValuePath="Value">
+                    <ComboBox.ItemsSource>
+                        <x:Array Type="{x:Type local:AddMarginControlComboBoxItem}">
+                            <local:AddMarginControlComboBoxItem Label="Asymmetry Margin" Value="Asymmetry" />
+                        </x:Array>
+                    </ComboBox.ItemsSource>
+                </ComboBox>
+            </StackPanel>
+            <TextBox x:Name="statusTextBox" Text="--" 
+                 IsEnabled="False" Grid.Column="1" Margin="5" Width="50" Background="Gray" BorderBrush="Black" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+            <StackPanel Orientation="Vertical" Grid.Column="2">
+                <TextBlock Text="Target Structure" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"
+                        Margin="5"/>
+                <ComboBox x:Name="OutputNameComboBox" IsEditable="True" Margin="5" Width="150"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Grid.Column="3">
+                <TextBlock Text="Create Marigin From"  
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"
+                        Margin="5"/>
+                <ComboBox x:Name="origStrComboBox" IsEditable="True" Margin="5" Width="150"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Grid.Column="4">
+                <TextBlock Text="Geometry" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"
+                        Margin="5"/>
+                <ComboBox x:Name="geoComboBox" Margin="5" Width="150"
+                      DisplayMemberPath="Label"
+                      SelectedValuePath="Value">
+                    <ComboBox.ItemsSource>
+                        <x:Array Type="{x:Type local:AddMarginControlItem}">
+                            <local:AddMarginControlItem Label="Inner" Value="Inner" />
+                            <local:AddMarginControlItem Label="Outer" Value="outer" />
+                        </x:Array>
+                    </ComboBox.ItemsSource>
+                </ComboBox>
+            </StackPanel>
+
+            <StackPanel Orientation="Vertical" Grid.Column="5">
+                <TextBlock Text="X1 ( R ) [mm]" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"
+                        Margin="5"/>
+                <TextBox x:Name="marginX1TextBox" Text="7" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                             Margin="5" 
+                             Width="100"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Grid.Column="6">
+                <TextBlock Text="X2 ( L ) [mm]" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"
+                        Margin="5"/>
+                <TextBox x:Name="marginX2TextBox" Text="7" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                             Margin="5" 
+                             Width="100"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Grid.Column="7">
+                <TextBlock Text="Y1 ( A ) [mm]" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"
+                        Margin="5"/>
+                <TextBox x:Name="marginY1TextBox" Text="7" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                             Margin="5" 
+                             Width="100"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Grid.Column="8">
+                <TextBlock Text="Y2 ( P ) [mm]" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"
+                        Margin="5"/>
+                <TextBox x:Name="marginY2TextBox" Text="7" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                             Margin="5" 
+                             Width="100"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Grid.Column="9">
+                <TextBlock Text="Z1 ( I ) [mm]" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"
+                        Margin="5"/>
+                <TextBox x:Name="marginZ1TextBox" Text="7" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                             Margin="5" 
+                             Width="100"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Grid.Column="10">
+                <TextBlock Text="Z2 ( S ) [mm]" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"
+                        Margin="5"/>
+                <TextBox x:Name="marginZ2TextBox" Text="7" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                             Margin="5" 
+                             Width="100"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

@@ -1,0 +1,29 @@
+﻿<UserControl x:Class="AutoStructure.MainControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" 
+             d:DesignHeight="800" >
+    <StackPanel  >
+        <StackPanel Orientation="Horizontal" Margin="5" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.CanContentScroll="true"  >
+            <Button x:Name="runButton" Content="RUN" IsEnabled="false"  FontWeight="Bold" Click="runButton_Click" Height="30" Margin="5,5,5,5" Padding="10,5,10,5"/>
+            <Button x:Name="loadParaButton" Content="Load Parameter" Margin="20,5,5,5" Padding="5" HorizontalContentAlignment="Center" HorizontalAlignment="Left" Click="loadParaButton_Click"/>
+            <Button x:Name="saveParaButton" Content="Save Parameter" IsEnabled="false" Margin="0,5,5,5" Padding="5" HorizontalContentAlignment="Center" HorizontalAlignment="Left" Click="saveParaButton_Click"/>
+
+            <Button x:Name="AddStrTabButton" Content="Add/Del Structure "  Click="addDelControlButton_Click" Height="30" Margin="20,5,5,5" Padding="5"/>
+            <Button x:Name="AddBoolTabButton" Content="Boolean Operators"  Click="boolOpControlButton_Click" Height="30" Margin="0,5,5,5" Padding="5"/>
+            <Button x:Name="AddMarginTabButton" Content="Margin for Structure"  Click="AddMarginControlButton_Click" Height="30" Margin="0,5,5,5" Padding="5"/>
+            <Button x:Name="ConvertHiResTabButton" Content="Convert to High Resolution Segment"  Click="convertHighResControlButton_Click" Height="30" Margin="0,5,5,5" Padding="5"/>
+            <Button x:Name="DelButton" Content="Delete Control"   Height="30" Click="delButton_Click" Margin="20,5,5,5" Padding="5"/>
+        </StackPanel>
+        <TextBox x:Name="logTextBox" TextWrapping="Wrap" Text="" IsReadOnly="True" Margin="5" Padding="5"
+                     Height="100"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                     ScrollViewer.CanContentScroll="true"/>
+        <ScrollViewer VerticalScrollBarVisibility="Visible" Height="800" CanContentScroll="true" HorizontalScrollBarVisibility="Disabled" Margin="5">
+            <StackPanel x:Name="stackPanel_Tab"  Margin="5,0" Focusable="True" AllowDrop="True">
+            </StackPanel>
+        </ScrollViewer>
+    </StackPanel>
+</UserControl>

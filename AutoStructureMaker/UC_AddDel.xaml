@@ -1,0 +1,71 @@
+﻿<UserControl x:Class="AutoStructure.UC_AddDel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:AutoStructure"
+             mc:Ignorable="d" >
+    <Border  BorderThickness="1" BorderBrush="Black" Margin="5">
+        <Grid x:Name="AddDelStrPanel" Height="Auto" ShowGridLines="True" Margin="5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
+            <StackPanel Orientation="Vertical" Grid.Column="0">
+                <TextBlock Text="Operation Type" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"
+                       Margin="5"/>
+                <ComboBox x:Name="OpCtrlComboBox" Margin="5" Width="140"                      
+                      DisplayMemberPath="Label"
+                      SelectedValuePath="Value" >
+                    <ComboBox.ItemsSource>
+                        <x:Array Type="{x:Type local:AddDelOpControlComboBoxItem}">
+                            <local:AddDelOpControlComboBoxItem Label="Add structure" Value="Add" />
+                            <local:AddDelOpControlComboBoxItem Label="Delete structure" Value="Del" />
+                        </x:Array>
+                    </ComboBox.ItemsSource>
+                </ComboBox>
+            </StackPanel>
+            <TextBox x:Name="statusTextBox" Text="--"
+                 IsEnabled="False" Grid.Column="1" Margin="5" Width="50" Background="Gray" BorderBrush="Black" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+            <StackPanel Orientation="Vertical" Grid.Column="2">
+                <TextBlock Text="Target Strucutre" 
+                       HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5"/>
+                <ComboBox x:Name="OutputNameComboBox" IsEditable="True" Margin="5" Width="150"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Grid.Column="3">
+                <TextBlock Text="Dicom Type" 
+                       HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5"/>
+                <ComboBox x:Name="dicomTypeComboBox" IsEditable="True" Margin="5" Width="150" 
+                          DisplayMemberPath="Label"
+                          SelectedValuePath="Value">
+                    <ComboBox.ItemsSource>
+                        <x:Array Type="{x:Type local:AddDelDicomTypeControlComboBoxItem}">
+                            <local:AddDelDicomTypeControlComboBoxItem Label="PTV" Value="PTV" />
+                            <local:AddDelDicomTypeControlComboBoxItem Label="ORGAN" Value="ORGAN" />
+                            <local:AddDelDicomTypeControlComboBoxItem Label="CONTROL" Value="CONTROL" />
+                            <local:AddDelDicomTypeControlComboBoxItem Label="DOSE_REGION" Value="DOSE_REGION" />
+                            <local:AddDelDicomTypeControlComboBoxItem Label="AVOIDANCE" Value="AVOIDANCE" />
+                            <local:AddDelDicomTypeControlComboBoxItem Label="CAVITY" Value="CAVITY" />
+                            <local:AddDelDicomTypeControlComboBoxItem Label="CONTRAST_AGENT" Value="CONTRAST_AGENT" />
+                            <local:AddDelDicomTypeControlComboBoxItem Label="CTV" Value="CTV" />
+                            <local:AddDelDicomTypeControlComboBoxItem Label="EXTERNAL" Value="EXTERNAL" />
+                            <local:AddDelDicomTypeControlComboBoxItem Label="GTV" Value="GTV" />
+                            <local:AddDelDicomTypeControlComboBoxItem Label="IRRAD_VOLUME" Value="IRRAD_VOLUME" />
+                            <local:AddDelDicomTypeControlComboBoxItem Label="TREATED_VOLUME" Value="TREATED_VOLUME" />
+                            <local:AddDelDicomTypeControlComboBoxItem Label="SUPPORT" Value="SUPPORT" />
+                            <local:AddDelDicomTypeControlComboBoxItem Label="FIXATION" Value="FIXATION" />
+                        </x:Array>
+                    </ComboBox.ItemsSource>
+                </ComboBox>
+            </StackPanel>
+
+        </Grid>
+    </Border>
+</UserControl>
