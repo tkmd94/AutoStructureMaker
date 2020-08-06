@@ -27,7 +27,7 @@ namespace AutoStructure
         public MainControl()
         {
             InitializeComponent();
-            
+
             // Sets the initial directory for saving and loading parameter files.
             outputFolderPath = @"\\172.16.10.181\va_transfer\MLC\--- ESAPI ---\AutoStructure\";
             //outputFolderPath = System.Environment.GetEnvironmentVariable("TEMP") + @"\";
@@ -829,8 +829,9 @@ namespace AutoStructure
 
             if (oStr != null &&
                 strA != null &&
-                strB != null)// &&
-                             // ((oStr.IsHighResolution == strA.IsHighResolution) == strB.IsHighResolution))
+                strB != null &&
+                oStr.IsHighResolution == strA.IsHighResolution &&
+                strA.IsHighResolution == strB.IsHighResolution)
             {
                 if (Bool_OpType == "SUB")
                 {
