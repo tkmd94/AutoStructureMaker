@@ -18,9 +18,8 @@ namespace AutoStructure
     public partial class MainControl : UserControl
     {
         public ObservableCollection<ParameterList> parameterList;
-        public string currentFolderPath;
         public string outputFolderPath;
-        public string outputFilename;
+
         public StructureSet structureSet;
         public string UserId;
 
@@ -28,12 +27,11 @@ namespace AutoStructure
         public MainControl()
         {
             InitializeComponent();
-
-            //outputFolderPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + @"\";
+            
+            // Sets the initial directory for saving and loading parameter files.
             outputFolderPath = @"\\172.16.10.181\va_transfer\MLC\--- ESAPI ---\AutoStructure\";
-            //outputFolderPath = System.Environment.GetEnvironmentVariable("TEMP") + "\\";
-            currentFolderPath = outputFolderPath;
-            outputFilename = "parameterList.txt";
+            //outputFolderPath = System.Environment.GetEnvironmentVariable("TEMP") + @"\";
+
         }
 
         /// <summary>
@@ -87,7 +85,6 @@ namespace AutoStructure
             ShowLogMsg("AddDelControl_OpCtrlComboBox_DropDownClosed");
             WPFControlUtility.OperateLogicalChildren(stackPanel_Tab, t =>
             {
-
                 string contName = "";
                 Control cont = t as Control;
                 if (cont != null && cont.Name.Length > 0)
@@ -199,11 +196,9 @@ namespace AutoStructure
             AddMarginControl.Name = "AddMarginControl";
             AddMarginControl.OpCtrlComboBox.Name = "AddMarginControl_OpCtrlComboBox";
             AddMarginControl.OpCtrlComboBox.SelectedIndex = index;
-
-
             AddMarginControl.statusTextBox.Name = "AddMarginControl_statusTextBox";
-
             AddMarginControl.OutputNameComboBox.Name = "AddMarginControl_OutputNameComboBox";
+
             foreach (var structure in structureSet.Structures)
             {
                 AddMarginControl.OutputNameComboBox.Items.Add(structure.Id);
@@ -350,7 +345,6 @@ namespace AutoStructure
                                 AddDel_Status = AddDel_Status,
                                 AddDel_OutputName = AddDel_OutputName,
                                 AddDel_DicomType = AddDel_DicomType,
-
 
                                 Bool_OpType = Bool_OpType,
                                 Bool_Status = Bool_Status,
@@ -659,7 +653,6 @@ namespace AutoStructure
 
                 }
                 int depth = WPFControlUtility.GetDepthInLogicalTree(t);
-                //デバッグの都合を考えて一つずつ出力する
             });
 
             parameterList.Add(new ParameterList
@@ -799,7 +792,7 @@ namespace AutoStructure
                 else
                 {
                     if (structureSet.CanRemoveStructure(structure))
-                    {                        
+                    {
                         structureSet.RemoveStructure(structure);
                         ShowLogMsg("(LOG-Add/Del) Delete structure: " + AddDel_OutputName);
                         return true;
@@ -877,7 +870,7 @@ namespace AutoStructure
         }
 
         /// <summary>
-        /// 
+        /// process_Margin
         /// </summary>
         /// <param name="Margin_OpType"></param>
         /// <param name="Margin_OutputName"></param>
@@ -918,7 +911,7 @@ namespace AutoStructure
                             marginValues[1], //L:x2:positive X axis in mm
                             marginValues[3], //P:y2:positive Y axis in mm
                             marginValues[5]);//S:z2:positive Z axis in mm
-                    
+
                     outStr.SegmentVolume = origStr.AsymmetricMargin(margins);
                     ShowLogMsg("(LOG-Margin) Done: " + outStr + "/" +
                         origStr + "/" + Margin_geoType + "(" + string.Join("/", marginValues) + ")");
@@ -937,7 +930,12 @@ namespace AutoStructure
 
         }
 
-
+        /// <summary>
+        /// process_Hires
+        /// </summary>
+        /// <param name="Hires_OpType"></param>
+        /// <param name="Hires_OutputName"></param>
+        /// <returns></returns>
         private bool process_Hires(string Hires_OpType, string Hires_OutputName)
         {
 
@@ -972,6 +970,7 @@ namespace AutoStructure
             }
 
         }
+
         /// <summary>
         /// runButton_Click
         /// </summary>
@@ -1024,7 +1023,7 @@ namespace AutoStructure
                                     }
                                 }
                             }
-                            int depth = WPFControlUtility.GetDepthInLogicalTree(t);                           
+                            int depth = WPFControlUtility.GetDepthInLogicalTree(t);
                         });
                     }
                     else if (row.OpType == "BoolOpControl")
@@ -1166,7 +1165,7 @@ namespace AutoStructure
         private void loadParaButton_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog ofd = new OpenFileDialog();
-            ofd.InitialDirectory = currentFolderPath;
+            ofd.InitialDirectory = outputFolderPath;
             ofd.Filter = "CSV(*.csv)|*.csv|All Files(*.*)|*.*";
             ofd.FilterIndex = 1;
             ofd.Title = "Open";
@@ -1183,9 +1182,7 @@ namespace AutoStructure
                     if (stackPanel_Tab.Children.Count > 0)
                     {
                         stackPanel_Tab.Children.RemoveAt(count - 1);
-
                     }
-
                     count = stackPanel_Tab.Children.Count;
                 }
                 if (stackPanel_Tab.Children.Count == 0)
@@ -1200,14 +1197,15 @@ namespace AutoStructure
                     {
                         var line = sr.ReadLine();
                         var values = line.Split(',');
-                        if (values[0] == "AddDelControl" && values.Count() >= 4)
+                        if (values[0] == "AddDelControl" &&
+                            (values.Count() == 3 || values.Count() == 4))
                         {
                             int index;
                             string dicomTypeName = "";
                             if (values[1] == "Add")
                             {
                                 index = 0;
-                                dicomTypeName = values[4];
+                                dicomTypeName = values[3];
                             }
                             else if (values[1] == "Del")
                             {
@@ -1217,10 +1215,10 @@ namespace AutoStructure
                             {
                                 index = -1;
                             }
-                            string outputName = values[3];
+                            string outputName = values[2];
                             loadAddDelControl(structureSet, index, outputName, dicomTypeName);
                         }
-                        if (values[0] == "ConvertHighResControl" && values.Count() == 4)
+                        if (values[0] == "ConvertHighResControl" && values.Count() == 3)
                         {
                             int index;
                             if (values[1] == "HiRes")
@@ -1231,10 +1229,10 @@ namespace AutoStructure
                             {
                                 index = -1;
                             }
-                            string outputName = values[3];
+                            string outputName = values[2];
                             loadConvertHighResControl(structureSet, index, outputName);
                         }
-                        if (values[0] == "BoolOpControl" && values.Count() == 6)
+                        if (values[0] == "BoolOpControl" && values.Count() == 5)
                         {
                             int index;
                             if (values[1] == "SUB")
@@ -1257,13 +1255,13 @@ namespace AutoStructure
                             {
                                 index = -1;
                             }
-                            string outputName = values[3];
-                            string strA = values[4];
-                            string strB = values[5];
+                            string outputName = values[2];
+                            string strA = values[3];
+                            string strB = values[4];
 
                             loadBoolOpControl(structureSet, index, outputName, strA, strB);
                         }
-                        if (values[0] == "AddMarginControl" && values.Count() == 12)
+                        if (values[0] == "AddMarginControl" && values.Count() == 11)
                         {
                             int index;
                             if (values[1] == "Asymmetry")
@@ -1274,35 +1272,33 @@ namespace AutoStructure
                             {
                                 index = -1;
                             }
-                            string outputName = values[3];
-                            string OrigStrName = values[4];
+                            string outputName = values[2];
+                            string OrigStrName = values[3];
                             int geoIndex = -1;
-                            if (values[5] == "Inner")
+                            if (values[4] == "Inner")
                             {
                                 geoIndex = 0;
                             }
-                            else if (values[5] == "Outer")
+                            else if (values[4] == "Outer")
                             {
                                 geoIndex = 1;
                             }
                             else
                             {
                             }
-                            int X1 = int.Parse(values[6]);
-                            int X2 = int.Parse(values[7]);
-                            int Y1 = int.Parse(values[8]);
-                            int Y2 = int.Parse(values[9]);
-                            int Z1 = int.Parse(values[10]);
-                            int Z2 = int.Parse(values[11]);
+                            int X1 = int.Parse(values[5]);
+                            int X2 = int.Parse(values[6]);
+                            int Y1 = int.Parse(values[7]);
+                            int Y2 = int.Parse(values[8]);
+                            int Z1 = int.Parse(values[9]);
+                            int Z2 = int.Parse(values[10]);
 
                             loadAddMarginControl(structureSet, index, outputName, OrigStrName, geoIndex, X1, X2, Y1, Y2, Z1, Z2);
-
                         }
                     }
                     parameterList = new ObservableCollection<ParameterList>();
-
                 }
-                currentFolderPath = System.IO.Path.GetDirectoryName(ofd.FileName);
+                outputFolderPath = System.IO.Path.GetDirectoryName(ofd.FileName);
                 ShowLogMsg("Load parameter.\n" + "Path:" + ofd.FileName);
             }
         }
@@ -1329,7 +1325,7 @@ namespace AutoStructure
                 DateTime dt = DateTime.Now;
                 string datetext = dt.ToString("yyyyMMddHHmmss");
                 sfd.FileName = "case_" + UserId + "_" + datetext + ".csv";
-                sfd.InitialDirectory = currentFolderPath;
+                sfd.InitialDirectory = outputFolderPath;
                 sfd.Filter = "CSV(*.csv)|*.csv|All Files(*.*)|*.*";
                 sfd.FilterIndex = 1;
                 sfd.Title = "Save as";
@@ -1351,7 +1347,7 @@ namespace AutoStructure
                         {
                             PropertyInfo[] infoArray = row.GetType().GetProperties();
                             string OpType = "";
-                            
+
                             foreach (PropertyInfo info in infoArray)
                             {
                                 if (info.Name == "OpType")
@@ -1381,7 +1377,8 @@ namespace AutoStructure
                                     string[] text = info.Name.ToString().Split('_');
                                     if (text.Count() == 2)
                                     {
-                                        if (text[0] == OpType)
+                                        // skip status information
+                                        if (text[0] == OpType && text[1] != "Status")
                                         {
                                             headerText += "," + info.GetValue(row, null).ToString();
                                         }
@@ -1393,7 +1390,7 @@ namespace AutoStructure
                         saveFile.Flush();
 
                     }
-                    currentFolderPath = System.IO.Path.GetDirectoryName(sfd.FileName);
+                    outputFolderPath = System.IO.Path.GetDirectoryName(sfd.FileName);
                     ShowLogMsg("Save parameter.\n" + "Path:" + sfd.FileName);
                 }
             }

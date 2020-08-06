@@ -6,6 +6,7 @@
     public class ParameterList
     {
         public string OpType { get; set; }
+
         public string AddDel_OpType { get; set; }
         public string AddDel_Status { get; set; }
         public string AddDel_OutputName { get; set; }
@@ -41,6 +42,7 @@
         Add,
         Del
     }
+
     /// <summary>
     /// AddDelOpControlComboBoxItem
     /// </summary>
@@ -49,6 +51,7 @@
         public string Label { get; set; }
         public AddDelStrType Value { get; set; }
     }
+
     /// <summary>
     /// DicomType
     /// </summary>
@@ -69,6 +72,7 @@
         SUPPORT,
         FIXATION,
     }
+
     /// <summary>
     /// AddDelDicomTypeControlComboBoxItem
     /// </summary>
@@ -78,9 +82,9 @@
         public DicomType Value { get; set; }
     }
 
-
-
-
+    /// <summary>
+    /// BoolOpeType
+    /// </summary>
     public enum BoolOpeType
     {
         SUB,
@@ -89,36 +93,54 @@
         XOR
     }
 
+    /// <summary>
+    /// BoolOpControlItem
+    /// </summary>
     public class BoolOpControlItem
     {
         public string Label { get; set; }
         public BoolOpeType Value { get; set; }
     }
 
+    /// <summary>
+    /// GeoType
+    /// </summary>
     public enum GeoType
     {
         Inner,
         Outer,
     }
 
+    /// <summary>
+    /// AddMarginControlItem
+    /// </summary>
     public class AddMarginControlItem
     {
         public string Label { get; set; }
         public GeoType Value { get; set; }
     }
 
+    /// <summary>
+    /// MarginType
+    /// </summary>
     public enum MarginType
     {
         Asymmetry,
     }
 
+    /// <summary>
+    /// AddMarginControlComboBoxItem
+    /// </summary>
     public class AddMarginControlComboBoxItem
     {
         public string Label { get; set; }
         public MarginType Value { get; set; }
     }
 
-    public enum convertTyp
+    /// <summary>
+    /// ConvertType
+    /// </summary>
+    public enum ConvertType
     {
         HiRes,
     }
@@ -126,7 +148,7 @@
     public class ConvertHighResComboBoxItem
     {
         public string Label { get; set; }
-        public convertTyp Value { get; set; }
+        public ConvertType Value { get; set; }
     }
 
 
