@@ -2,9 +2,12 @@
 自動輪郭作成ツール
 
 VARIAN社製治療計画装置EclipseのScripting codeです。
+- Binary-Plugin
+- Write-Access
 
+[![LicenseBadges](https://badges.frapsoft.com/os/mit/mit.svg?v=102)](https://github.com/ellerbrock/open-source-badge/)  
 
-実装機能︓開いているStructureSetに対してユーザーが定義した順序で輪郭操作を自動で行えます。
+実装機能︓開いているStructureSetに対してユーザーが定義した順序で輪郭操作を一括して行えます。
 
 提供する機能は次の４つのモジュールです。
 - 輪郭の追加・削除
@@ -16,10 +19,10 @@ VARIAN社製治療計画装置EclipseのScripting codeです。
 
 動作検証：v15.6
 
-注）本スクリプトはWritableにつき、データに変更を加えますので、ご注意ください。
+注）本スクリプトは **Write-Access** につき、データに変更を加えますので、使用する際には十分にご注意ください。
 
 # 操作説明
-1. 必要に応じて輪郭を承認(Approval)して保護してください。
+1. 必要に応じて輪郭を承認(Approval)して保護します。
 2. 操作したい順番にモジュールを追加します。
 3. モジュール内の各項目を設定します。
 4. 「RUN」ボタンを押し、処理を開始します。
@@ -29,10 +32,11 @@ VARIAN社製治療計画装置EclipseのScripting codeです。
 6. 処理内容を再利用したい場合は設定をファイルに保存します。
 
 - 承認(Approval)されている輪郭は処理できません。
-- 元に戻したい場合はEclipseの「Undo」機能を使用して下さい。
+- 分解能の異なる輪郭同士の論理演算は処理できません。
+- 元に戻したい場合はEclipseの「Reload」機能を使用して下さい。
 
 # ボタン説明
-- 「Run」設定した輪郭操作を自動実行します。
+- 「Run」設定した輪郭操作を実行します。
 - 「Load parameter」保存された設定ファイルを読み込みます。
 - 「Save parameter」設定をファイルに保存します。
 - 「Add/Dell Structure」：輪郭の追加・削除モジュールを追加します。 
