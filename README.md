@@ -45,4 +45,4 @@ VARIAN社製治療計画装置EclipseのScripting codeです。
 
 
 # UI画面
-![Screen capture of planCompare UI](https://github.com/tkmd94/AutoStructure/blob/master/AutoStrucure_UI.JPG)
+![Screen capture of planCompare UI](https://github.com/tkmd94/AutoStructureMaker/blob/master/Animation.gif)
