@@ -45,5 +45,5 @@ VARIAN社製治療計画装置EclipseのScripting codeです。
 - 「Convert to High Resolution Segment」：既存輪郭を高分解能タイプに変換するモジュールを追加します。
 - 「Delete　Control」最下段のモジュールを削除します。
 
-# UI画面
+# ユーザーインターフェース
 ![Screen capture of planCompare UI](https://github.com/tkmd94/AutoStructureMaker/blob/master/Animation.gif)
