@@ -53,7 +53,7 @@
                 <ComboBox x:Name="strA_ComboBox" IsEditable="True" Margin="5"  Width="150"/>
             </StackPanel>
             <StackPanel Orientation="Vertical" Grid.Column="4">
-                <TextBlock Text="Sencond Structure" 
+                <TextBlock Text="Second Structure" 
                        HorizontalAlignment="Center" 
                        VerticalAlignment="Center"
                         Margin="5"/>
