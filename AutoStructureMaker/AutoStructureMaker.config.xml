@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AppSettings>
+  <!-- パラメータCSV保存先の院内ファイルサーバーUNCパス（ネットワーク未接続時はローカルフォルダへ自動フォールバック） -->
+  <NetworkDirectory>\\172.16.10.181\va_transfer\MLC\--- ESAPI ---\AutoStructure\</NetworkDirectory>
+
+  <!-- ネットワーク未接続時のローカル保存先フォルダ（空欄の場合は「マイドキュメント\AutoStructure」に自動保存） -->
+  <LocalFallbackDirectory></LocalFallbackDirectory>
+
+  <!-- CSV保存ファイル名の接頭辞（例: case_ -> case_ユーザー名_日時.csv） -->
+  <SaveFileNamePrefix>case_</SaveFileNamePrefix>
+
+  <!-- 「Add Structure」モジュール追加時の初期DICOMタイプ（PTV, ORGAN, GTV, CTV, EXTERNAL 等） -->
+  <DefaultDicomType>PTV</DefaultDicomType>
+
+  <!-- 「Boolean Operators」モジュール追加時の初期演算（SUB, AND, OR, XOR） -->
+  <DefaultBoolOperation>SUB</DefaultBoolOperation>
+
+  <!-- 「Margin for Structure」モジュール追加時の初期ジオメトリ（Outer: 拡大 / Inner: 縮小） -->
+  <DefaultMarginGeometry>Outer</DefaultMarginGeometry>
+
+  <!-- 6軸マージンの初期値（単位: mm） -->
+  <!-- X1: 右 (Right) -->
+  <DefaultMarginX1>7</DefaultMarginX1>
+  <!-- X2: 左 (Left) -->
+  <DefaultMarginX2>7</DefaultMarginX2>
+  <!-- Y1: 前 (Anterior) -->
+  <DefaultMarginY1>7</DefaultMarginY1>
+  <!-- Y2: 後 (Posterior) -->
+  <DefaultMarginY2>7</DefaultMarginY2>
+  <!-- Z1: 尾側 (Inferior) -->
+  <DefaultMarginZ1>7</DefaultMarginZ1>
+  <!-- Z2: 頭側 (Superior) -->
+  <DefaultMarginZ2>7</DefaultMarginZ2>
+</AppSettings>

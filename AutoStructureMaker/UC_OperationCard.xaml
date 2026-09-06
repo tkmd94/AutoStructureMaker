@@ -1,0 +1,363 @@
+<UserControl x:Class="AutoStructure.UC_OperationCard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:AutoStructure"
+             xmlns:vm="clr-namespace:AutoStructure.ViewModels"
+             xmlns:common="clr-namespace:AutoStructure.Common"
+             mc:Ignorable="d" 
+             d:DataContext="{d:DesignInstance Type=vm:OperationStepViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/AutoStructureMaker.esapi;component/Theme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BoolToVis" />
+
+            <DataTemplate x:Key="StructureItemTemplate" DataType="{x:Type common:StructureInfo}">
+                <DockPanel LastChildFill="True" Margin="2,1">
+                    <Border DockPanel.Dock="Right" Margin="6,0,2,0" Padding="4,1" CornerRadius="2"
+                            Background="{Binding ResolutionBadgeBrush}" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding ResolutionBadgeText}" FontSize="8" FontWeight="Bold" Foreground="White" />
+                    </Border>
+                    <TextBlock Text="{Binding Id}" VerticalAlignment="Center" FontWeight="Medium" />
+                </DockPanel>
+            </DataTemplate>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Border BorderThickness="1" BorderBrush="{StaticResource Theme.Border.Normal}" 
+            Background="{StaticResource Theme.Background.Card}" 
+            CornerRadius="4" Margin="0,4">
+        <Border.Style>
+            <Style TargetType="Border">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsEnabled}" Value="False">
+                        <Setter Property="Opacity" Value="0.55" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.08" Color="#000000" />
+        </Border.Effect>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- 1行目: カードヘッダー & 共通コントロール (STEP番号, カテゴリー, ターゲット輪郭, ステータス, ▲▼⧉✕) -->
+            <Border Grid.Row="0" Background="#ECEFF1" CornerRadius="3,3,0,0" Padding="0,0,6,0">
+                <DockPanel LastChildFill="True">
+                    <!-- 左端: ステップ番号バッジ & 有効/無効チェックボックス -->
+                    <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Background="{Binding CategoryBadgeColor}" CornerRadius="3,0,0,0" Width="48" Height="40">
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding CategoryBadgeText}" FontSize="8" FontWeight="Bold" Foreground="#ECEFF1" HorizontalAlignment="Center" />
+                                <TextBlock Text="{Binding StepNumber}" FontSize="15" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+                        <CheckBox IsChecked="{Binding IsEnabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="8,0,4,0"
+                                  ToolTip="このステップを有効にする（チェックを外すと実行時にスキップされます）" />
+                    </StackPanel>
+
+                    <!-- 右端: 操作ボタン群 (▲ 上へ, ▼ 下へ, ⧉ 複製, ✕ 削除) -->
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0,0,0">
+                        <Button Content="▲" 
+                                Command="{Binding DataContext.MoveUpCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                CommandParameter="{Binding}"
+                                ToolTip="この操作ステップを1つ上へ移動"
+                                Width="26" Height="26" Margin="2"
+                                FontWeight="Bold" />
+                        <Button Content="▼" 
+                                Command="{Binding DataContext.MoveDownCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                CommandParameter="{Binding}"
+                                ToolTip="この操作ステップを1つ下へ移動"
+                                Width="26" Height="26" Margin="2"
+                                FontWeight="Bold" />
+                        <Button Content="⧉" 
+                                Command="{Binding DataContext.DuplicateStepCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                CommandParameter="{Binding}"
+                                ToolTip="この操作ステップを複製して直下に挿入"
+                                Width="26" Height="26" Margin="2"
+                                FontWeight="Bold" Foreground="#1565C0" Background="#E3F2FD" BorderBrush="#90CAF9" />
+                        <Button Content="✕" 
+                                Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                CommandParameter="{Binding}"
+                                ToolTip="この操作ステップを削除"
+                                Width="26" Height="26" Margin="4,2,2,2"
+                                FontWeight="Bold" Foreground="#C62828" Background="#FFEBEE" BorderBrush="#EF9A9A" />
+                    </StackPanel>
+
+                    <!-- 中央: カテゴリー選択、ステータス、ターゲット輪郭 -->
+                    <WrapPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="8,4">
+                        <!-- 操作カテゴリー選択 ComboBox -->
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="4,2">
+                            <TextBlock Text="Operation:" FontWeight="SemiBold" Foreground="{StaticResource Theme.Text.Secondary}" 
+                                       VerticalAlignment="Center" Margin="0,0,6,0" />
+                            <ComboBox Width="145" Height="28"
+                                      ItemsSource="{Binding Categories}"
+                                      DisplayMemberPath="Label"
+                                      SelectedValuePath="Value"
+                                      SelectedValue="{Binding Category, Mode=TwoWay}" />
+                        </StackPanel>
+
+                        <!-- 実行ステータスバッジ -->
+                        <Border Width="50" Height="26" Margin="6,2" CornerRadius="3"
+                                Background="{Binding StatusBrush, Mode=OneWay}"
+                                BorderBrush="{Binding StatusBorderBrush, Mode=OneWay}"
+                                BorderThickness="1" ToolTip="実行ステータス">
+                            <TextBlock Text="{Binding Status, Mode=OneWay}"
+                                       Foreground="{Binding StatusForeground, Mode=OneWay}"
+                                       FontWeight="Bold" FontSize="11"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+
+                        <!-- 全操作共通: 作成先輪郭 (Target Structure) -->
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="8,2">
+                            <TextBlock Text="Target Structure:" FontWeight="SemiBold" Foreground="{StaticResource Theme.Text.Secondary}" 
+                                       VerticalAlignment="Center" Margin="0,0,6,0" />
+                            <ComboBox Width="150" Height="28" IsEditable="True"
+                                      Text="{Binding TargetStructure, Mode=TwoWay}"
+                                      ItemsSource="{Binding AvailableStructureInfos}"
+                                      ItemTemplate="{StaticResource StructureItemTemplate}"
+                                      TextSearch.TextPath="Id" />
+                            <!-- リアルタイム解像度バッジ (HIGH / STD / NEW: STD / NEW: HIGH) -->
+                            <Border Margin="5,0,0,0" Padding="5,2" CornerRadius="3"
+                                    Background="{Binding TargetResolutionBadgeBrush}"
+                                    Visibility="{Binding HasTargetResolution, Converter={StaticResource BoolToVis}}"
+                                    ToolTip="{Binding TargetResolutionToolTip}" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding TargetResolutionBadgeText}" FontSize="9" FontWeight="Bold" Foreground="White" />
+                            </Border>
+                        </StackPanel>
+                    </WrapPanel>
+                </DockPanel>
+            </Border>
+
+            <!-- 2行目: カテゴリー固有パラメータ入力エリア (動的切り替え) -->
+            <Border Grid.Row="1" Background="#FFFFFF" Padding="12,8" CornerRadius="0,0,3,3">
+                <Grid>
+                    <!-- A. Add Structure 用パラメータ -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" 
+                                Visibility="{Binding IsAddStructure, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="DICOM Type:" FontWeight="SemiBold" Foreground="{StaticResource Theme.Text.Secondary}" 
+                                   VerticalAlignment="Center" Margin="0,0,6,0" />
+                        <ComboBox Width="150" Height="28" IsEditable="True"
+                                  DisplayMemberPath="Label" SelectedValuePath="Value"
+                                  SelectedValue="{Binding DicomType, Mode=TwoWay}">
+                            <ComboBox.ItemsSource>
+                                <x:Array Type="{x:Type local:AddDelDicomTypeControlComboBoxItem}">
+                                    <local:AddDelDicomTypeControlComboBoxItem Label="PTV" Value="PTV" />
+                                    <local:AddDelDicomTypeControlComboBoxItem Label="ORGAN" Value="ORGAN" />
+                                    <local:AddDelDicomTypeControlComboBoxItem Label="CONTROL" Value="CONTROL" />
+                                    <local:AddDelDicomTypeControlComboBoxItem Label="DOSE_REGION" Value="DOSE_REGION" />
+                                    <local:AddDelDicomTypeControlComboBoxItem Label="AVOIDANCE" Value="AVOIDANCE" />
+                                    <local:AddDelDicomTypeControlComboBoxItem Label="CAVITY" Value="CAVITY" />
+                                    <local:AddDelDicomTypeControlComboBoxItem Label="CONTRAST_AGENT" Value="CONTRAST_AGENT" />
+                                    <local:AddDelDicomTypeControlComboBoxItem Label="CTV" Value="CTV" />
+                                    <local:AddDelDicomTypeControlComboBoxItem Label="EXTERNAL" Value="EXTERNAL" />
+                                    <local:AddDelDicomTypeControlComboBoxItem Label="GTV" Value="GTV" />
+                                    <local:AddDelDicomTypeControlComboBoxItem Label="IRRAD_VOLUME" Value="IRRAD_VOLUME" />
+                                    <local:AddDelDicomTypeControlComboBoxItem Label="TREATED_VOLUME" Value="TREATED_VOLUME" />
+                                    <local:AddDelDicomTypeControlComboBoxItem Label="SUPPORT" Value="SUPPORT" />
+                                    <local:AddDelDicomTypeControlComboBoxItem Label="FIXATION" Value="FIXATION" />
+                                </x:Array>
+                            </ComboBox.ItemsSource>
+                        </ComboBox>
+                        <TextBlock Text="(Creates a new empty structure with specified DICOM type)" 
+                                   FontStyle="Italic" Foreground="#78909C" Margin="12,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <!-- B. Delete Structure 用パラメータ -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" 
+                                Visibility="{Binding IsDeleteStructure, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="Action:" FontWeight="SemiBold" Foreground="#C62828" 
+                                   VerticalAlignment="Center" Margin="0,0,6,0" />
+                        <TextBlock Text="Structure will be permanently removed from StructureSet." 
+                                   FontWeight="Medium" Foreground="#D32F2F" VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <!-- C. Boolean Operators 用パラメータ -->
+                    <WrapPanel Orientation="Horizontal" VerticalAlignment="Center" 
+                               Visibility="{Binding IsBooleanVisible, Converter={StaticResource BoolToVis}}">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,2,14,2">
+                            <TextBlock Text="Operator:" FontWeight="SemiBold" Foreground="{StaticResource Theme.Text.Secondary}" 
+                                       VerticalAlignment="Center" Margin="0,0,6,0" />
+                            <ComboBox Width="100" Height="28"
+                                      DisplayMemberPath="Label" SelectedValuePath="Value"
+                                      SelectedValue="{Binding BoolOpType, Mode=TwoWay}">
+                                <ComboBox.ItemsSource>
+                                    <x:Array Type="{x:Type local:BoolOpControlItem}">
+                                        <local:BoolOpControlItem Label="SUB (A - B)" Value="SUB" />
+                                        <local:BoolOpControlItem Label="AND (A ∩ B)" Value="AND" />
+                                        <local:BoolOpControlItem Label="OR  (A ∪ B)" Value="OR" />
+                                        <local:BoolOpControlItem Label="XOR" Value="XOR" />
+                                    </x:Array>
+                                </ComboBox.ItemsSource>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,2,14,2">
+                            <TextBlock Text="First Structure (A):" FontWeight="SemiBold" Foreground="{StaticResource Theme.Text.Secondary}" 
+                                       VerticalAlignment="Center" Margin="0,0,6,0" />
+                            <ComboBox Width="140" Height="28" IsEditable="True"
+                                      Text="{Binding StructureA, Mode=TwoWay}"
+                                      ItemsSource="{Binding AvailableStructureInfos}"
+                                      ItemTemplate="{StaticResource StructureItemTemplate}"
+                                      TextSearch.TextPath="Id" />
+                            <!-- リアルタイム解像度バッジ (HIGH / STD / NEW: STD / NEW: HIGH) -->
+                            <Border Margin="4,0,0,0" Padding="4,2" CornerRadius="3"
+                                    Background="{Binding StructureAResolutionBadgeBrush}"
+                                    Visibility="{Binding HasStructureAResolution, Converter={StaticResource BoolToVis}}"
+                                    ToolTip="{Binding StructureAResolutionToolTip}" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding StructureAResolutionBadgeText}" FontSize="8" FontWeight="Bold" Foreground="White" />
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,2,14,2">
+                            <TextBlock Text="Second Structure (B):" FontWeight="SemiBold" Foreground="{StaticResource Theme.Text.Secondary}" 
+                                       VerticalAlignment="Center" Margin="0,0,6,0" />
+                            <ComboBox Width="140" Height="28" IsEditable="True"
+                                      Text="{Binding StructureB, Mode=TwoWay}"
+                                      ItemsSource="{Binding AvailableStructureInfos}"
+                                      ItemTemplate="{StaticResource StructureItemTemplate}"
+                                      TextSearch.TextPath="Id" />
+                            <!-- リアルタイム解像度バッジ (HIGH / STD / NEW: STD / NEW: HIGH) -->
+                            <Border Margin="4,0,0,0" Padding="4,2" CornerRadius="3"
+                                    Background="{Binding StructureBResolutionBadgeBrush}"
+                                    Visibility="{Binding HasStructureBResolution, Converter={StaticResource BoolToVis}}"
+                                    ToolTip="{Binding StructureBResolutionToolTip}" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding StructureBResolutionBadgeText}" FontSize="8" FontWeight="Bold" Foreground="White" />
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Auto-Align インジケーター (Structure A と B の解像度不一致時) -->
+                        <Border Margin="0,2,8,2" Padding="6,3" CornerRadius="3"
+                                Background="#FFF8E1" BorderBrush="#FFE082" BorderThickness="1"
+                                Visibility="{Binding IsBooleanResolutionMismatch, Converter={StaticResource BoolToVis}}"
+                                ToolTip="Structure A と B の解像度が異なります（Std と High）。Boolean処理実行時に一時的に標準解像度輪郭が高解像度化（Auto-Align）されて正常に結合されます。"
+                                VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⚡ Auto-Align (High-Res)" FontSize="10" FontWeight="Bold" Foreground="#F57F17" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+                    </WrapPanel>
+
+                    <!-- D. Margin 用パラメータ -->
+                    <StackPanel Orientation="Vertical" Visibility="{Binding IsMarginVisible, Converter={StaticResource BoolToVis}}">
+                        <!-- マージン基本設定: 参照元, ジオメトリ, 等方/異方切替 -->
+                        <WrapPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,6">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,2,14,2">
+                                <TextBlock Text="Create Margin From:" FontWeight="SemiBold" Foreground="{StaticResource Theme.Text.Secondary}" 
+                                           VerticalAlignment="Center" Margin="0,0,6,0" />
+                                <ComboBox Width="140" Height="28" IsEditable="True"
+                                          Text="{Binding OrigStructure, Mode=TwoWay}"
+                                          ItemsSource="{Binding AvailableStructureInfos}"
+                                          ItemTemplate="{StaticResource StructureItemTemplate}"
+                                          TextSearch.TextPath="Id" />
+                                <!-- リアルタイム解像度バッジ (HIGH / STD / NEW: STD / NEW: HIGH) -->
+                                <Border Margin="4,0,0,0" Padding="4,2" CornerRadius="3"
+                                        Background="{Binding OrigStructureResolutionBadgeBrush}"
+                                        Visibility="{Binding HasOrigStructureResolution, Converter={StaticResource BoolToVis}}"
+                                        ToolTip="{Binding OrigStructureResolutionToolTip}" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding OrigStructureResolutionBadgeText}" FontSize="8" FontWeight="Bold" Foreground="White" />
+                                </Border>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,2,14,2">
+                                <TextBlock Text="Geometry:" FontWeight="SemiBold" Foreground="{StaticResource Theme.Text.Secondary}" 
+                                           VerticalAlignment="Center" Margin="0,0,6,0" />
+                                <ComboBox Width="110" Height="28"
+                                          DisplayMemberPath="Label" SelectedValuePath="Value"
+                                          SelectedValue="{Binding MarginGeometry, Mode=TwoWay}">
+                                    <ComboBox.ItemsSource>
+                                        <x:Array Type="{x:Type local:AddMarginControlItem}">
+                                            <local:AddMarginControlItem Label="Outer" Value="Outer" />
+                                            <local:AddMarginControlItem Label="Inner" Value="Inner" />
+                                        </x:Array>
+                                    </ComboBox.ItemsSource>
+                                </ComboBox>
+                            </StackPanel>
+
+                            <CheckBox Content="Uniform Margin (All Directions)" 
+                                      IsChecked="{Binding IsUniformMargin, Mode=TwoWay}" 
+                                      VerticalAlignment="Center" Margin="0,2,14,2" />
+
+                            <!-- 等方マージン用 一括入力ボックス -->
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,2"
+                                        Visibility="{Binding IsUniformMargin, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="Margin [mm]:" FontWeight="SemiBold" Foreground="{StaticResource Theme.Text.Secondary}" 
+                                           VerticalAlignment="Center" Margin="0,0,6,0" />
+                                <TextBox Width="60" Height="26" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                         Text="{Binding MarginUniformText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                        </WrapPanel>
+
+                        <!-- 異方マージン用 6方向入力グリッド (Uniform が false の時に表示) -->
+                        <Grid Margin="0,2,0,0">
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsUniformMargin}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
+                            <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal" Margin="0,2,8,2">
+                                    <TextBlock Text="X1(R):" Foreground="{StaticResource Theme.Text.Secondary}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                    <TextBox Width="50" Height="24" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                             Text="{Binding X1Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock Text="mm" Foreground="#78909C" VerticalAlignment="Center" Margin="2,0,0,0" FontSize="10"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,2,8,2">
+                                    <TextBlock Text="X2(L):" Foreground="{StaticResource Theme.Text.Secondary}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                    <TextBox Width="50" Height="24" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                             Text="{Binding X2Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock Text="mm" Foreground="#78909C" VerticalAlignment="Center" Margin="2,0,0,0" FontSize="10"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,2,8,2">
+                                    <TextBlock Text="Y1(A):" Foreground="{StaticResource Theme.Text.Secondary}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                    <TextBox Width="50" Height="24" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                             Text="{Binding Y1Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock Text="mm" Foreground="#78909C" VerticalAlignment="Center" Margin="2,0,0,0" FontSize="10"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,2,8,2">
+                                    <TextBlock Text="Y2(P):" Foreground="{StaticResource Theme.Text.Secondary}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                    <TextBox Width="50" Height="24" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                             Text="{Binding Y2Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock Text="mm" Foreground="#78909C" VerticalAlignment="Center" Margin="2,0,0,0" FontSize="10"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,2,8,2">
+                                    <TextBlock Text="Z1(I):" Foreground="{StaticResource Theme.Text.Secondary}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                    <TextBox Width="50" Height="24" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                             Text="{Binding Z1Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock Text="mm" Foreground="#78909C" VerticalAlignment="Center" Margin="2,0,0,0" FontSize="10"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,2,8,2">
+                                    <TextBlock Text="Z2(S):" Foreground="{StaticResource Theme.Text.Secondary}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                    <TextBox Width="50" Height="24" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                             Text="{Binding Z2Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock Text="mm" Foreground="#78909C" VerticalAlignment="Center" Margin="2,0,0,0" FontSize="10"/>
+                                </StackPanel>
+                            </WrapPanel>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- E. Convert High Res 用パラメータ -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" 
+                                Visibility="{Binding IsConvertHighResVisible, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="Convert Mode:" FontWeight="SemiBold" Foreground="{StaticResource Theme.Text.Secondary}" 
+                                   VerticalAlignment="Center" Margin="0,0,6,0" />
+                        <TextBlock Text="Converts target structure into high-resolution segment representation." 
+                                   FontStyle="Italic" Foreground="#78909C" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>

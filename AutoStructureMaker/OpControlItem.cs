@@ -1,39 +1,26 @@
-﻿namespace AutoStructure
+namespace AutoStructure
 {
     /// <summary>
-    /// ParameterList
+    /// 操作種別の統合カテゴリー
     /// </summary>
-    public class ParameterList
+    public enum OperationCategory
     {
-        public string OpType { get; set; }
-
-        public string AddDel_OpType { get; set; }
-        public string AddDel_Status { get; set; }
-        public string AddDel_OutputName { get; set; }
-        public string AddDel_DicomType { get; set; }
-
-        public string Bool_OpType { get; set; }
-        public string Bool_Status { get; set; }
-        public string Bool_OutputName { get; set; }
-        public string Bool_StrA { get; set; }
-        public string Bool_StrB { get; set; }
-
-        public string Margin_OpType { get; set; }
-        public string Margin_Status { get; set; }
-        public string Margin_OutputName { get; set; }
-        public string Margin_OrigName { get; set; }
-        public string Margin_geoType { get; set; }
-        public string Margin_X1 { get; set; }
-        public string Margin_X2 { get; set; }
-        public string Margin_Y1 { get; set; }
-        public string Margin_Y2 { get; set; }
-        public string Margin_Z1 { get; set; }
-        public string Margin_Z2 { get; set; }
-
-        public string Hires_OpType { get; set; }
-        public string Hires_Status { get; set; }
-        public string Hires_OutputName { get; set; }
+        AddStructure,
+        DeleteStructure,
+        BooleanOperation,
+        Margin,
+        ConvertHighRes
     }
+
+    /// <summary>
+    /// カテゴリー選択 ComboBox 用アイテム
+    /// </summary>
+    public class OperationCategoryItem
+    {
+        public string Label { get; set; }
+        public OperationCategory Value { get; set; }
+    }
+
     /// <summary>
     /// AddDelStrType
     /// </summary>

@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.779
@@ -6,6 +6,8 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoStructureMaker", "AutoStructureMaker\AutoStructureMaker.csproj", "{CB539231-BC14-4BCD-BD00-15BE1EE2EC01}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoStructureMaker.Runner", "AutoStructureMaker.Runner\AutoStructureMaker.Runner.csproj", "{846AC561-7EFD-4EEF-8ACF-9239CDBA0933}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoStructureMaker.Tests", "AutoStructureMaker.Tests\AutoStructureMaker.Tests.csproj", "{A82F4E92-3B7D-4F71-B590-7F51283B41A0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{846AC561-7EFD-4EEF-8ACF-9239CDBA0933}.Debug|x64.Build.0 = Debug|x64
 		{846AC561-7EFD-4EEF-8ACF-9239CDBA0933}.Release|x64.ActiveCfg = Release|x64
 		{846AC561-7EFD-4EEF-8ACF-9239CDBA0933}.Release|x64.Build.0 = Release|x64
+		{A82F4E92-3B7D-4F71-B590-7F51283B41A0}.Debug|x64.ActiveCfg = Debug|x64
+		{A82F4E92-3B7D-4F71-B590-7F51283B41A0}.Debug|x64.Build.0 = Debug|x64
+		{A82F4E92-3B7D-4F71-B590-7F51283B41A0}.Release|x64.ActiveCfg = Release|x64
+		{A82F4E92-3B7D-4F71-B590-7F51283B41A0}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
