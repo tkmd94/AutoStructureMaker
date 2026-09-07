@@ -93,6 +93,13 @@ namespace AutoStructure.ViewModels
             }
         }
 
+        private bool _isSyncingContext;
+        public bool IsSyncingContext
+        {
+            get => _isSyncingContext;
+            set => SetProperty(ref _isSyncingContext, value);
+        }
+
         private string _targetStructure = "";
 
         public string TargetStructure
@@ -100,6 +107,12 @@ namespace AutoStructure.ViewModels
             get => _targetStructure;
             set
             {
+                // コンテキスト同期中または無用な ComboBox 選択解除による意図しない空文字上書きを防御
+                if (IsSyncingContext && string.IsNullOrEmpty(value) && !string.IsNullOrEmpty(_targetStructure))
+                {
+                    return;
+                }
+
                 if (SetProperty(ref _targetStructure, value))
                 {
                     OnPropertyChanged(nameof(HasTargetResolution));
@@ -411,6 +424,11 @@ namespace AutoStructure.ViewModels
             get => _structureA;
             set
             {
+                if (IsSyncingContext && string.IsNullOrEmpty(value) && !string.IsNullOrEmpty(_structureA))
+                {
+                    return;
+                }
+
                 if (SetProperty(ref _structureA, value))
                 {
                     OnPropertyChanged(nameof(HasStructureAResolution));
@@ -427,6 +445,11 @@ namespace AutoStructure.ViewModels
             get => _structureB;
             set
             {
+                if (IsSyncingContext && string.IsNullOrEmpty(value) && !string.IsNullOrEmpty(_structureB))
+                {
+                    return;
+                }
+
                 if (SetProperty(ref _structureB, value))
                 {
                     OnPropertyChanged(nameof(HasStructureBResolution));
@@ -490,6 +513,11 @@ namespace AutoStructure.ViewModels
             get => _origStructure;
             set
             {
+                if (IsSyncingContext && string.IsNullOrEmpty(value) && !string.IsNullOrEmpty(_origStructure))
+                {
+                    return;
+                }
+
                 if (SetProperty(ref _origStructure, value))
                 {
                     OnPropertyChanged(nameof(HasOrigStructureResolution));

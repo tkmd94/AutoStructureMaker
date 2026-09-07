@@ -316,6 +316,7 @@ namespace AutoStructure.ViewModels
                 for (int i = 0; i < Operations.Count; i++)
                 {
                     var op = Operations[i];
+                    op.IsSyncingContext = true;
 
                     // 同期直前のユーザー入力値を保護・退避
                     string savedTarget = op.TargetStructure;
@@ -358,6 +359,10 @@ namespace AutoStructure.ViewModels
             finally
             {
                 _isRefreshingContexts = false;
+                foreach (var op in Operations)
+                {
+                    op.IsSyncingContext = false;
+                }
             }
         }
 

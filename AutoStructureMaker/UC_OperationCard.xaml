@@ -120,7 +120,7 @@
                             <TextBlock Text="Target Structure:" FontWeight="SemiBold" Foreground="{StaticResource Theme.Text.Secondary}" 
                                        VerticalAlignment="Center" Margin="0,0,6,0" />
                             <ComboBox Width="150" Height="28" IsEditable="True"
-                                      Text="{Binding TargetStructure, Mode=TwoWay}"
+                                      Text="{Binding TargetStructure, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                       ItemsSource="{Binding AvailableStructureInfos}"
                                       ItemTemplate="{StaticResource StructureItemTemplate}"
                                       TextSearch.TextPath="Id" />
@@ -203,7 +203,7 @@
                             <TextBlock Text="First Structure (A):" FontWeight="SemiBold" Foreground="{StaticResource Theme.Text.Secondary}" 
                                        VerticalAlignment="Center" Margin="0,0,6,0" />
                             <ComboBox Width="140" Height="28" IsEditable="True"
-                                      Text="{Binding StructureA, Mode=TwoWay}"
+                                      Text="{Binding StructureA, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                       ItemsSource="{Binding AvailableStructureInfos}"
                                       ItemTemplate="{StaticResource StructureItemTemplate}"
                                       TextSearch.TextPath="Id" />
@@ -220,7 +220,7 @@
                             <TextBlock Text="Second Structure (B):" FontWeight="SemiBold" Foreground="{StaticResource Theme.Text.Secondary}" 
                                        VerticalAlignment="Center" Margin="0,0,6,0" />
                             <ComboBox Width="140" Height="28" IsEditable="True"
-                                      Text="{Binding StructureB, Mode=TwoWay}"
+                                      Text="{Binding StructureB, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                       ItemsSource="{Binding AvailableStructureInfos}"
                                       ItemTemplate="{StaticResource StructureItemTemplate}"
                                       TextSearch.TextPath="Id" />
@@ -253,7 +253,7 @@
                                 <TextBlock Text="Create Margin From:" FontWeight="SemiBold" Foreground="{StaticResource Theme.Text.Secondary}" 
                                            VerticalAlignment="Center" Margin="0,0,6,0" />
                                 <ComboBox Width="140" Height="28" IsEditable="True"
-                                          Text="{Binding OrigStructure, Mode=TwoWay}"
+                                          Text="{Binding OrigStructure, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                           ItemsSource="{Binding AvailableStructureInfos}"
                                           ItemTemplate="{StaticResource StructureItemTemplate}"
                                           TextSearch.TextPath="Id" />
