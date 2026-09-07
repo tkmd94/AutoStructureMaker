@@ -1,5 +1,6 @@
-using EsapiEssentials.Plugin;
 using System.Diagnostics;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using VMS.TPS.Common.Model.API;
 
@@ -8,21 +9,27 @@ using VMS.TPS.Common.Model.API;
 
 namespace VMS.TPS
 {
-    public class Script : ScriptBase
+    public class Script
     {
-        public override void Run(PluginScriptContext context)
+        public Script()
         {
-            // TODO : Add here the code that is called when the script is launched from Eclipse.
-            User user = context.CurrentUser;
-            StructureSet structureSet = context.StructureSet;
+        }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void Execute(ScriptContext context)
+        {
+            Run(context.CurrentUser, context.StructureSet);
+        }
+
+        public static void Run(User user, StructureSet structureSet)
+        {
             if (structureSet == null)
             {
                 MessageBox.Show("No structureSet is loaded.");
                 return;
             }
 
-            System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            Assembly assembly = Assembly.GetExecutingAssembly();
             FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
             string scriptVersion = fvi.FileVersion;
 
