@@ -33,10 +33,10 @@
 ### 1.1 Script Approval で承認されない / エラーになる
 - **現象**: Eclipse の Script Approval ツールに DLL を登録しようとするとエラーが発生する、または承認チェックボックスが有効にならない。
 - **原因**:
-  - `AutoStructureMaker_v2.0.2.esapi.dll` が適切な管理者権限で配置されていない。
+  - `AutoStructureMaker_v2.0.3.esapi.dll` が適切な管理者権限で配置されていない。
   - Web からダウンロードしたバイナリに Windows のセキュリティブロック（Mark of the Web）が付与されている。
 - **対処法**:
-  1. エクスプローラーで `AutoStructureMaker_v2.0.2.esapi.dll` を右クリック →「プロパティ」を開きます。
+  1. エクスプローラーで `AutoStructureMaker_v2.0.3.esapi.dll` を右クリック →「プロパティ」を開きます。
   2. 全般タブの一番下にある **「セキュリティ: 許可する（Unblock）」** にチェックを入れ、「OK」をクリックします。
   3. Eclipse の Script Approval ツールを管理者として実行し、再登録します。
 
@@ -47,9 +47,9 @@
 - **原因**:
   - Eclipse はプラグイン DLL をロードする際、リフレクション（`Assembly.GetTypes()`）によって `VMS.TPS.Script` クラスを探索します。
   - このとき `Script` クラスが外部ライブラリ（`EsapiEssentials.ScriptBase` 等）を継承していると、Costura.Fody のモジュール初期化子（`.cctor` による内包 DLL の自動展開）が動く前に外部 DLL の解決に失敗し、`ReflectionTypeLoadException` がスローされて Eclipse 側でエントリポイントクラスが「存在しない」と判定されてしまいます。
-- **対処法（v2.0.2 で根本修正済み）**:
-  - `AutoStructureMaker` v2.0.2 では、`VMS.TPS.Script` を外部アセンブリに依存しない**純粋な POCO クラス（`System.Object` 継承）**として設計刷新し、`[MethodImpl(MethodImplOptions.NoInlining)]` で Eclipse ネイティブの実行エントリポイントを実装しています。
-  - v2.0.2 の最新 `AutoStructureMaker_v2.0.2.esapi.dll` を配置してご利用ください。
+- **対処法（根本修正済み）**:
+  - `AutoStructureMaker` では、`VMS.TPS.Script` を外部アセンブリに依存しない**純粋な POCO クラス（`System.Object` 継承）**として設計刷新し、`[MethodImpl(MethodImplOptions.NoInlining)]` で Eclipse ネイティブの実行エントリポイントを実装しています。
+  - 最新の `AutoStructureMaker_v2.0.3.esapi.dll` を配置してご利用ください。
 
 ---
 
@@ -128,11 +128,14 @@
 ### 2.8 事前検査（Pre-Flight Validation）でエラーが表示された場合の対処
 - **現象**: 「✔ Check」ボタンを押した際、または「▶ RUN」実行時に「Pre-Flight Validation Failed」ダイアログが表示され、実行が中断される。
 - **原因**:
-  - 存在しない輪郭や、まだ作成されていない輪郭を参照している。
+  - 存在しない輪郭や、先行ステップで作成されていない輪郭を参照している。
+  - **Boolean / Margin の出力先（Target Structure）に患者データや先行ステップに存在しない輪郭が手動指定されている**（※ESAPI は既存輪郭のボリューム更新を行うため、受け皿となる輪郭が事前に存在する必要があります。v2.0.3 より厳格にエラー検知されます）。
   - 必須項目（TargetStructure 等）が空欄のままになっている。
   - 同一輪郭名に対して重複して `Add` が定義されている。
 - **対処法**:
   - ダイアログに表示された「Step 番号」と「メッセージ」を確認し、該当ステップの輪郭名入力やステップの実行順序（▲/▼）を修正してください。
+  - **各操作カードのステータスバッジ（OK / Warn / Error / Skip）にマウスカーソルを合わせると、検出された詳細メッセージが ToolTip として即座に確認できます**。
+  - 先に `Add` ステップで輪郭を作成するか、既存の輪郭名をドロップダウンから選択してください。
   - 一時的に不要なステップであれば、カードのチェックボックスを外して無効化（Disable）することでも回避可能です。
 
 ---
@@ -144,7 +147,7 @@
 - **原因**:
   - **原因 1 (バインディング更新タイミング)**: WPF `ComboBox` のテキストバインディング既定値が `LostFocus` である場合、ドロップダウンからアイテムを選択した直後や未確定フォーカス時に ViewModel へのプロパティ更新が遅延・喪失していました。
   - **原因 2 (選択解除イベントの逆流)**: スクリプト実行後やステップ操作時に輪郭リストのコンテキスト同期を行う際、WPF の `ComboBox` がアイテムコレクションの再評価を検知して内部的に `SelectedItem = null` を強制設定（Coerce）し、それが TwoWay バインディングを通じて ViewModel に空文字 `""` を書き戻していました。先行ステップで作成した輪郭が消去されると、後続ステップの候補からも連鎖的に消去される現象が発生していました。
-- **対策（v2.0.2 で根本修正・多層防御）**:
+- **対策（v2.0.2 / v2.0.3 で根本修正・多層防御）**:
   - **即時反映 (`UpdateSourceTrigger=PropertyChanged`)**: 全ての輪郭選択 ComboBox のバインディングに `UpdateSourceTrigger=PropertyChanged` を指定し、ドロップダウンでの選択・入力が遅延なく ViewModel へ即時反映されます。
   - **同期中空文字遮断 (`IsSyncingContext` ガード)**: `OperationItemViewModel` に `IsSyncingContext` フラグを導入。コンテキスト同期処理中および ComboBox の選択解除イベントによって発生する空文字上書きをセッターレベルで厳密に遮断し、入力値を完全に保護しています。
 

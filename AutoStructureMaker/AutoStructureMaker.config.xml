@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AppSettings>
   <!-- パラメータCSV保存先の院内ファイルサーバーUNCパス（ネットワーク未接続時はローカルフォルダへ自動フォールバック） -->
-  <NetworkDirectory>\\172.16.10.181\va_transfer\MLC\--- ESAPI ---\AutoStructure\</NetworkDirectory>
+  <NetworkDirectory>\\Server\Share\AutoStructure\</NetworkDirectory>
 
   <!-- ネットワーク未接続時のローカル保存先フォルダ（空欄の場合は「マイドキュメント\AutoStructure」に自動保存） -->
   <LocalFallbackDirectory></LocalFallbackDirectory>

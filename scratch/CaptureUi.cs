@@ -63,7 +63,7 @@ namespace UiCapture
                 // Theme.xaml をマージ
                 var themeDict = new ResourceDictionary
                 {
-                    Source = new Uri("pack://application:,,,/AutoStructureMaker_v2.0.2.esapi;component/Theme.xaml", UriKind.Absolute)
+                    Source = new Uri("pack://application:,,,/AutoStructureMaker_v2.0.3.esapi;component/Theme.xaml", UriKind.Absolute)
                 };
                 app.Resources.MergedDictionaries.Add(themeDict);
 
@@ -226,6 +226,7 @@ namespace UiCapture
                 Console.WriteLine("\n[SCENE 5] Testing Pre-Flight Validator ('✔ Check' button)...");
                 var existingIds = vm.StructureSet?.Structures?.Select(s => s.Id).ToList() ?? vm.AvailableStructures.ToList();
                 var result = PreFlightValidator.Validate(vm.Operations, existingIds);
+                vm.ApplyValidationResultToOperations(result);
 
                 vm.AppendLog($"--- Pre-Flight Validation ({DateTime.Now:HH:mm:ss}) ---");
                 foreach (var issue in result.Issues)

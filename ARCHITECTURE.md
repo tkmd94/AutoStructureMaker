@@ -35,13 +35,13 @@ AutoStructureMaker は、Varian 社製放射線治療計画装置 Eclipse の ES
 2. **直感的な統合操作環境 (Unified Card UI)**:
    従来の 4 つの個別 UI を廃止し、操作カテゴリー（Add / Delete / Boolean / Margin / HiRes）を動的に切り替え可能な単一の操作カード ViewModel に一本化。有効/無効トグル（`IsEnabled`）やワンクリック複製（`Duplicate`）を標準装備。
 3. **スマートな解像度バリアフリー (⚡ Auto-Align)**:
-   ESAPI の技術的ハードルである「異なる解像度タイプ（Standard 256×256 と High 512×512）の混在による Boolean 演算エラー」を完全自動で解決し、ユーザーに解像度を意識させない安全な透過的処理を提供。
+   ESAPI の技術的ハードルである「異なる解像度タイプ（Standard と High）の混在による Boolean 演算エラー」を完全自動で解決し、ユーザーに解像度を意識させない安全な透過的処理を提供。
 4. **ステップ間コンテキストの自動伝播 (Context Auto-Propagation)**:
    先行ステップで定義された新規輪郭をリアルタイムにシミュレートし、後続ステップのドロップダウン候補に自動追加することで、手入力の手間とタイポ（入力ミス）を根絶（無効化ステップは適切に除外）。
 5. **実行前自動検証 (Pre-Flight Validation)**:
    実行前または「✔ Check」ボタン押下時に、未定義輪郭の参照、空入力、重複作成、自己減算等のパイプライン不整合を一括自動検出し、事故を未然に防止。
 6. **テスト容易性 (Testability)**:
-   ESAPI API が存在しない開発・CI 環境でも、UI ロジック、テンプレート変換、マージンパース、輪郭伝播、解像度整合判定、事前検証、WPF ComboBox 結合を自動検証できる単体テスト基盤（全57テスト 100% PASS）を完備。
+   ESAPI API が存在しない開発・CI 環境でも、UI ロジック、テンプレート変換、マージンパース、輪郭伝播、解像度整合判定、事前検証、WPF ComboBox 結合を自動検証できる単体テスト基盤（全60テスト 100% PASS）を完備。
 
 ---
 
@@ -321,12 +321,12 @@ AutoStructureMaker では、放射線治療計画装置というクリティカ�
 
 ## 7. 単体テスト自動化基盤 (`AutoStructureMaker.Tests`)
 
-本プロジェクトには、ESAPI のバイナリ環境に依存せず、CI / CD や開発機上で即座に実行可能な **57 件の自動単体テスト（MSTest）** が完備されています（`test.bat` でワンクリック実行可能）：
+本プロジェクトには、ESAPI のバイナリ環境に依存せず、CI / CD や開発機上で即座に実行可能な **60 件の自動単体テスト（MSTest）** が完備されています（`test.bat` でワンクリック実行可能）：
 
 | テストクラス | テスト数 | 主な検証項目 |
 |:---|:---:|:---|
-| **`MainViewModelTests`** | 18 | コマンド（AddStep, MoveUp, MoveDown, Remove, DuplicateStep, ValidatePreFlight）、ステップ番号自動採番、コレクション同期、無効ステップ伝播除外、スマート・インプレース同期、WPF ComboBox 双方向バインディング結合テスト、埋め込み PDF マニュアル存在検証 |
-| **`OperationStepViewModelTests`** | 23 | カテゴリー別可視性切替、等方/異方マージン連動、解像度バッジ表示、⚡ Auto-Align 不一致検出、先行ステップ輪郭伝播、Hi-Res 昇格伝播、IsEnabled トグル、空輪郭・ロック輪郭安全ガード、全解像度組み合わせ網羅検証 |
-| **`PreFlightValidatorTests`** | 8 | 存在しない参照輪郭の検出、重複作成エラー、空の輪郭名検出、自己減算警告、空輪郭警告、承認輪郭警告、DICOM 名文字数上限（16文字）警告、空白のみ輪郭名エラー、全ステップ正常ケース |
+| **`MainViewModelTests`** | 18 | コマンド（AddStep, MoveUp, MoveDown, Remove, DuplicateStep, ValidatePreFlight）、ステップ番号自動採番、コレクション同期、無効ステップ伝播除外、スマート・インプレース同期、WPF ComboBox 双方向バインディング結合テスト、埋め込み PDF マニュアル存在検証、Check 実行時カードステータス・ToolTip 連動 |
+| **`OperationStepViewModelTests`** | 19 | カテゴリー別可視性切替、等方/異方マージン連動、解像度バッジ表示、⚡ Auto-Align 不一致検出、先行ステップ輪郭伝播、Hi-Res 昇格伝播、IsEnabled トグル、空輪郭・ロック輪郭安全ガード、全解像度組み合わせ網羅検証 |
+| **`PreFlightValidatorTests`** | 12 | 存在しない参照輪郭の検出、存在しない Target 輪郭の検出（Boolean/Margin）、重複作成エラー、空の輪郭名検出、自己減算警告、空輪郭警告、承認輪郭警告、DICOM 名文字数上限（16文字）警告、空白のみ輪郭名エラー、全ステップ正常ケース |
 | **`TemplateServiceTests`** | 7 | XML テンプレートのシリアライズ/デシリアライズ、Enabled 属性の永続化、レガシー CSV 読み込み、破損 CSV 行のスキップ耐性、余分な空白トリム耐性、破損 XML 例外耐性 |
 | **`AppConfigTests`** | 4 | デフォルト設定値検証、XML シリアライズ、未接続 UNC ネットワークパスの高速タイムアウト（1秒フォールバック）、破損設定ファイル読み込み時の安全フォールバック |

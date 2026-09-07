@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-AutoStructureMaker v2.0.1 - Comprehensive Technical & Clinical Manual PDF Generator
+AutoStructureMaker v2.0.3 - Comprehensive Technical & Clinical Manual PDF Generator
 Combines all 8 documentation files into a single, beautifully-styled, publication-grade PDF.
 """
 
@@ -11,11 +11,21 @@ import subprocess
 import tempfile
 import mistune
 
-MERMAID_JS_PATH = r"C:\Users\t.kdm94\.antigravity-ide\extensions\shd101wyy.markdown-preview-enhanced-0.8.34-universal\crossnote\dependencies\mermaid\mermaid.min.js"
+MERMAID_JS_PATH = os.path.join(
+    os.path.expanduser("~"),
+    ".antigravity-ide",
+    "extensions",
+    "shd101wyy.markdown-preview-enhanced-0.8.34-universal",
+    "crossnote",
+    "dependencies",
+    "mermaid",
+    "mermaid.min.js"
+)
 CHROME_PATH = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
-WORKSPACE_DIR = r"g:\Source\Repos\tkmd94\AutoStructureMaker"
+WORKSPACE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTPUT_PDF_ROOT = os.path.join(WORKSPACE_DIR, "AutoStructureMaker_Manual.pdf")
 OUTPUT_PDF_DOCS = os.path.join(WORKSPACE_DIR, "docs", "AutoStructureMaker_Manual.pdf")
+OUTPUT_PDF_RES = os.path.join(WORKSPACE_DIR, "AutoStructureMaker", "Resources", "AutoStructureMaker_Manual.pdf")
 
 CHAPTERS = [
     {
@@ -51,7 +61,7 @@ CHAPTERS = [
         "num": "第5章",
         "title": "トラブルシューティング・FAQ",
         "source": "TROUBLESHOOTING.md",
-        "desc": "Eclipse 権限エラー、UNC 遅延対策、実行後の ComboBox 入力値消失防止策、および FAQ"
+        "desc": "Eclipse 権限エラー、UNC 遅延対策、Pre-Flight 検査エラー（TargetStructure 検知）、および FAQ"
     },
     {
         "id": "chapter-6",
@@ -72,7 +82,7 @@ CHAPTERS = [
         "num": "付録",
         "title": "更新履歴 (Changelog)",
         "source": "CHANGELOG.md",
-        "desc": "v2.0.1、v2.0.0、v1.0.0 のリリースノートおよび全重要変更履歴"
+        "desc": "v2.0.3、v2.0.2、v2.0.1、v2.0.0、v1.0.0 のリリースノートおよび全重要変更履歴"
     }
 ]
 
@@ -85,6 +95,9 @@ def get_base64_image(rel_path):
         if ext == "jpg": ext = "jpeg"
         return f"data:image/{ext};base64,{encoded}"
     return ""
+
+# Initialize Mistune parser with escape=False to preserve raw HTML (callouts, <br>, etc.)
+markdown_parser = mistune.Markdown(escape=False)
 
 def preprocess_markdown(text, chapter_id):
     # 1. Normalize line endings
@@ -134,7 +147,7 @@ def preprocess_markdown(text, chapter_id):
                 callout_content.append(lines[i][1:].strip())
                 i += 1
             inner_md = "\n".join(callout_content)
-            inner_html = mistune.markdown(inner_md)
+            inner_html = markdown_parser(inner_md)
             processed_lines.append(f'<div class="callout callout-{alert_type.lower()}"><div class="callout-title">{alert_type}</div><div class="callout-body">{inner_html}</div></div>')
             continue
         else:
@@ -158,7 +171,7 @@ def build_html_document():
             raw_content = f.read()
 
         preprocessed = preprocess_markdown(raw_content, chap["id"])
-        chap_html = mistune.markdown(preprocessed)
+        chap_html = markdown_parser(preprocessed)
 
         # Convert <pre><code class="lang-mermaid">...</code></pre> to <div class="mermaid">...</div>
         chap_html = re.sub(
@@ -201,14 +214,14 @@ def build_html_document():
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<title>AutoStructureMaker v2.0.1 総合技術・臨床運用マニュアル</title>
+<title>AutoStructureMaker v2.0.3 総合技術・臨床運用マニュアル</title>
 <style>
 /* ================= PAGE SETUP & BASE STYLING ================= */
 @page {{
     size: A4;
     margin: 18mm 16mm 20mm 16mm;
     @top-left {{
-        content: "AutoStructureMaker v2.0.1 総合マニュアル";
+        content: "AutoStructureMaker v2.0.3 総合マニュアル";
         font-family: 'Segoe UI', Meiryo, sans-serif;
         font-size: 8pt;
         color: #64748b;
@@ -544,7 +557,7 @@ tr:nth-child(even) {{
 
 /* ================= CODE BLOCKS ================= */
 code {{
-    font-family: "Cascadia Code", "Consolas", "Courier New", monospace;
+    font-family: "Cascadia Code", "Consolas", "BIZ UDGothic", "MS Gothic", "Courier New", monospace;
     font-size: 8.5pt;
     background-color: #f1f5f9;
     color: #0f172a;
@@ -694,11 +707,11 @@ document.addEventListener('DOMContentLoaded', function() {{
         <div class="cover-badge-row">
             <span class="badge-pill badge-blue">Varian Medical Systems Eclipse</span>
             <span class="badge-pill badge-purple">ESAPI v15.6 / v16.1</span>
-            <span class="badge-pill badge-green">Production Ready (v2.0.1)</span>
+            <span class="badge-pill badge-green">Production Ready (v2.0.3)</span>
         </div>
         <div class="cover-title-group">
             <h1 class="cover-product">AutoStructureMaker</h1>
-            <div class="cover-version">Version 2.0.1 (Released: 2026-09-07)</div>
+            <div class="cover-version">Version 2.0.3 (Released: 2026-09-07)</div>
             <div class="cover-subtitle">総合技術・臨床運用マニュアル</div>
             <div class="cover-desc">
                 本マニュアルは、放射線治療計画装置 Varian Eclipse における高精度輪郭自動作成・論理演算・マージン生成支援プラグイン 
@@ -722,14 +735,14 @@ document.addEventListener('DOMContentLoaded', function() {{
             </div>
             <div class="spec-card">
                 <div class="spec-label">Validation Status</div>
-                <div class="spec-val">56/56 Tests Passed (100% PASS)</div>
+                <div class="spec-val">60/60 Tests Passed (100% PASS)</div>
             </div>
         </div>
     </div>
 
     <div class="cover-bottom">
         <div>Department of Radiation Oncology & Medical Physics</div>
-        <div>Document ID: ASM-MAN-2026-V201 &bull; September 7, 2026</div>
+        <div>Document ID: ASM-MAN-2026-V203 &bull; September 7, 2026</div>
     </div>
 </div>
 
@@ -769,6 +782,7 @@ def main():
         CHROME_PATH,
         "--headless=new",
         "--disable-gpu",
+        "--lang=ja",
         f"--print-to-pdf={temp_pdf}",
         "--no-pdf-header-footer",
         "--run-all-compositor-stages-before-draw",
@@ -796,6 +810,11 @@ def main():
     with open(OUTPUT_PDF_DOCS, "wb") as dst:
         dst.write(pdf_bytes)
     print(f"      [OK] Docs PDF: {OUTPUT_PDF_DOCS}")
+
+    os.makedirs(os.path.dirname(OUTPUT_PDF_RES), exist_ok=True)
+    with open(OUTPUT_PDF_RES, "wb") as dst:
+        dst.write(pdf_bytes)
+    print(f"      [OK] Resources PDF: {OUTPUT_PDF_RES}")
 
     # Inspect with PyMuPDF
     try:

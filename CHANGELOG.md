@@ -5,6 +5,24 @@ AutoStructureMaker のすべての重要な変更は、本ファイルに記録�
 
 ---
 
+## [2.0.3] - 2026-09-07
+
+### 🐛 修正 (Fixed)
+- **Pre-Flight Validation における未定義 Target Structure 検出漏れの修正**:
+  - `BooleanOperation` および `Margin` 操作において、書き込み先となる `TargetStructure` が利用可能輪郭リスト（既存輪郭または先行ステップで作成される輪郭）に存在するかどうかの検証を追加。
+  - 事前に `AddStructure` 等で定義されていない未知の輪郭を Target に指定した場合、実行前にエラー（`Target structure '{target}' does not exist in patient dataset or earlier steps. You must add it first.`）として確実に捕捉・警告するように改善。
+
+### 🌟 追加 (Added)
+- **「✔ Check」ボタン実行結果の各操作カードステータスへのリアルタイム可視化**:
+  - `MainViewModel.ApplyValidationResultToOperations` を新設し、Pre-Flight Check（および RUN 実行前検証）の検証結果を各操作カードのステータスバッジ（`OK` / `Warn` / `Error` / `Skip`）に即座にカラー反映（緑・琥珀・赤・青灰）。
+  - `StatusToolTip` プロパティを導入し、ステータスバッジへのマウスホバーで具体的なエラー理由や警告メッセージをツールチップ表示。
+- **自動単体テストの拡充 (全 60 件 100% PASS)**:
+  - Boolean / Margin における TargetStructure 存在検証テスト、および検証結果のステータス・ツールチップ反映テストを追加し、テスト件数を 57 件から 60 件へ拡充。
+- **出力バイナリへのバージョン明記**:
+  - 生成される ESAPI プラグイン DLL 名を `AutoStructureMaker_v2.0.3.esapi.dll` に統一。
+
+---
+
 ## [2.0.2] - 2026-09-07
 
 ### 🐛 修正 (Fixed)
@@ -57,7 +75,7 @@ AutoStructureMaker のすべての重要な変更は、本ファイルに記録�
   - 輪郭ドロップダウン（ComboBox）の各アイテムに、既存輪郭の解像度バッジ（`[STD]` 青色 / `[HIGH]` オレンジ色）を表示。
   - 未登録の新規作成予定輪郭に対しても、先行ステップの定義をリアルタイム解析し `[NEW] [STD]` または `[NEW] [HIGH]` を動的に付与。
 - **高分解能自動変換機能 (⚡ Boolean Auto-Align)**:
-  - 標準分解能（STD: 256×256）と高分解能（HIGH: 512×512）の輪郭同士で Boolean 演算を行う際、低分解能側の輪郭を高分解能へ自動事前変換（`CanConvertToHighResolution` / `ConvertToHighResolution`）して演算を実行。
+  - 標準分解能（STD）と高分解能（HIGH）の輪郭同士で Boolean 演算を行う際、低分解能側の輪郭を高分解能へ自動事前変換（`CanConvertToHighResolution` / `ConvertToHighResolution`）して演算を実行。
   - 異なる解像度による ESAPI 内部例外クラッシュをゼロ化。
 - **先行ステップ輪郭の自動伝播 (Context Propagation)**:
   - パイプライン内で先行して新規作成（Add, Boolean, Margin 等）される輪郭名を、後続カードの ComboBox 選択肢へ自動的に伝播・供給。

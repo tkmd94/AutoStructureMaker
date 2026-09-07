@@ -578,10 +578,54 @@ namespace AutoStructure.ViewModels
             }
         }
 
+        public void ApplyValidationResultToOperations(ValidationResult result)
+        {
+            if (result == null || Operations == null) return;
+
+            var issuesByStep = result.Issues.GroupBy(x => x.StepNumber).ToDictionary(g => g.Key, g => g.ToList());
+
+            for (int i = 0; i < Operations.Count; i++)
+            {
+                var op = Operations[i];
+                int stepNum = op.StepNumber > 0 ? op.StepNumber : (i + 1);
+
+                if (!op.IsEnabled)
+                {
+                    op.SetStatusSkipped();
+                    op.StatusToolTip = "Step is disabled (skipped)";
+                    continue;
+                }
+
+                if (issuesByStep.TryGetValue(stepNum, out var issues) && issues.Count > 0)
+                {
+                    var firstError = issues.FirstOrDefault(x => x.IsError);
+                    if (firstError != null)
+                    {
+                        op.Status = "Error";
+                        op.StatusToolTip = $"[Error] {firstError.Message}";
+                    }
+                    else
+                    {
+                        var firstWarn = issues.First();
+                        op.Status = "Warn";
+                        op.StatusToolTip = $"[Warning] {firstWarn.Message}";
+                    }
+                }
+                else
+                {
+                    op.Status = "OK";
+                    op.StatusToolTip = "Validation passed: Ready to execute";
+                }
+            }
+        }
+
         private void ExecuteValidate()
         {
             var existingIds = StructureSet?.Structures?.Select(s => s.Id).ToList() ?? AvailableStructures.ToList();
             var result = PreFlightValidator.Validate(Operations, existingIds);
+
+            // 各ステップのステータスに検証結果を反映
+            ApplyValidationResultToOperations(result);
 
             AppendLog($"--- Pre-Flight Validation ({DateTime.Now:HH:mm:ss}) ---");
             foreach (var issue in result.Issues)
@@ -699,6 +743,7 @@ namespace AutoStructure.ViewModels
             // 実行前 Pre-Flight 検証
             var existingIds = StructureSet.Structures?.Select(s => s.Id).ToList() ?? AvailableStructures.ToList();
             var valResult = PreFlightValidator.Validate(Operations, existingIds);
+            ApplyValidationResultToOperations(valResult);
             if (!valResult.IsValid)
             {
                 AppendLog($"(ERROR) Pre-Flight Validation failed with {valResult.Errors.Count} error(s):");

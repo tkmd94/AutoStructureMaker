@@ -43,6 +43,7 @@ namespace AutoStructureMaker.Tests
             Assert.AreEqual(7, settings.DefaultMarginZ1);
             Assert.AreEqual(7, settings.DefaultMarginZ2);
             Assert.AreEqual("case_", settings.SaveFileNamePrefix);
+            Assert.AreEqual(@"\\Server\Share\AutoStructure\", settings.NetworkDirectory);
         }
 
         [TestMethod]

@@ -12,7 +12,7 @@ namespace AutoStructure.Common
     [XmlRoot("AppSettings")]
     public class AppSettings
     {
-        public string NetworkDirectory { get; set; } = @"\\172.16.10.181\va_transfer\MLC\--- ESAPI ---\AutoStructure\";
+        public string NetworkDirectory { get; set; } = @"\\Server\Share\AutoStructure\";
         public string LocalFallbackDirectory { get; set; } = "";
         public string SaveFileNamePrefix { get; set; } = "case_";
         public string DefaultDicomType { get; set; } = "PTV";

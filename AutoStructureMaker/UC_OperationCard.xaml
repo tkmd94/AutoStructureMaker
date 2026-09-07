@@ -11,7 +11,7 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/AutoStructureMaker_v2.0.2.esapi;component/Theme.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/AutoStructureMaker_v2.0.3.esapi;component/Theme.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BoolToVis" />
 
@@ -108,7 +108,7 @@
                         <Border Width="50" Height="26" Margin="6,2" CornerRadius="3"
                                 Background="{Binding StatusBrush, Mode=OneWay}"
                                 BorderBrush="{Binding StatusBorderBrush, Mode=OneWay}"
-                                BorderThickness="1" ToolTip="実行ステータス">
+                                BorderThickness="1" ToolTip="{Binding StatusToolTip, Mode=OneWay}">
                             <TextBlock Text="{Binding Status, Mode=OneWay}"
                                        Foreground="{Binding StatusForeground, Mode=OneWay}"
                                        FontWeight="Bold" FontSize="11"

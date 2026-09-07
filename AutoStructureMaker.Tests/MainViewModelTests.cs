@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using AutoStructure;
+using AutoStructure.Common;
 using AutoStructure.ViewModels;
 
 namespace AutoStructureMaker.Tests
@@ -435,6 +437,79 @@ namespace AutoStructureMaker.Tests
                 Assert.IsNotNull(stream);
                 Assert.IsTrue(stream.Length > 100000, $"Embedded manual size is unexpectedly small: {stream.Length} bytes");
             }
+        }
+
+        [TestMethod]
+        public void ApplyValidationResult_UpdatesStatusAndToolTip_ForOperations()
+        {
+            // Setup base structures
+            _vm.SetBaseStructures(new[]
+            {
+                new StructureInfo { Id = "CTV" },
+                new StructureInfo { Id = "Bladder" }
+            });
+
+            // Step 1: 正常な Add (OK になるべき)
+            var op1 = new OperationStepViewModel
+            {
+                StepNumber = 1,
+                Category = OperationCategory.AddStructure,
+                TargetStructure = "PTV_New"
+            };
+
+            // Step 2: 存在しない輪郭を参照する Boolean (Error になるべき)
+            var op2 = new OperationStepViewModel
+            {
+                StepNumber = 2,
+                Category = OperationCategory.BooleanOperation,
+                TargetStructure = "Ghost_Target",
+                StructureA = "CTV",
+                StructureB = "Bladder",
+                BoolOpType = BoolOpeType.SUB
+            };
+
+            // Step 3: 自己減算の Boolean (Warn になるべき)
+            var op3 = new OperationStepViewModel
+            {
+                StepNumber = 3,
+                Category = OperationCategory.BooleanOperation,
+                TargetStructure = "CTV",
+                StructureA = "CTV",
+                StructureB = "CTV",
+                BoolOpType = BoolOpeType.SUB
+            };
+
+            // Step 4: 無効化されたステップ (Skip になるべき)
+            var op4 = new OperationStepViewModel
+            {
+                StepNumber = 4,
+                Category = OperationCategory.Margin,
+                TargetStructure = "CTV",
+                OrigStructure = "CTV",
+                IsEnabled = false
+            };
+
+            _vm.Operations.Clear();
+            _vm.Operations.Add(op1);
+            _vm.Operations.Add(op2);
+            _vm.Operations.Add(op3);
+            _vm.Operations.Add(op4);
+
+            var result = PreFlightValidator.Validate(_vm.Operations, _vm.AvailableStructures);
+            _vm.ApplyValidationResultToOperations(result);
+
+            // Assert statuses and tooltips
+            Assert.AreEqual("OK", op1.Status, "Step 1 should be OK");
+            Assert.IsTrue(op1.StatusToolTip.Contains("Ready") || op1.StatusToolTip.Contains("Validation passed"));
+
+            Assert.AreEqual("Error", op2.Status, "Step 2 should be Error");
+            Assert.IsTrue(op2.StatusToolTip.Contains("Error"));
+
+            Assert.AreEqual("Warn", op3.Status, "Step 3 should be Warn");
+            Assert.IsTrue(op3.StatusToolTip.Contains("Warning"));
+
+            Assert.AreEqual("Skip", op4.Status, "Step 4 should be Skip");
+            Assert.IsTrue(op4.StatusToolTip.Contains("disabled") || op4.StatusToolTip.Contains("skipped"));
         }
     }
 }

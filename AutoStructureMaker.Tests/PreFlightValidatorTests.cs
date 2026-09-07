@@ -46,14 +46,14 @@ namespace AutoStructureMaker.Tests
                 {
                     StepNumber = 1,
                     Category = OperationCategory.BooleanOperation,
-                    TargetStructure = "CTV_SUB",
+                    TargetStructure = "Real_Target",
                     StructureA = "Ghost_CTV",
                     StructureB = "Ghost_Bladder",
                     BoolOpType = BoolOpeType.SUB
                 }
             };
 
-            var result = PreFlightValidator.Validate(ops, new List<string> { "Real_CTV" });
+            var result = PreFlightValidator.Validate(ops, new List<string> { "Real_Target" });
             Assert.IsFalse(result.IsValid);
             Assert.AreEqual(2, result.Errors.Count); // Ghost_CTV and Ghost_Bladder
         }
@@ -73,13 +73,27 @@ namespace AutoStructureMaker.Tests
                 new OperationStepViewModel
                 {
                     StepNumber = 2,
+                    Category = OperationCategory.AddStructure,
+                    TargetStructure = "PTV_Opt",
+                    DicomType = DicomType.PTV
+                },
+                new OperationStepViewModel
+                {
+                    StepNumber = 3,
                     Category = OperationCategory.Margin,
                     TargetStructure = "PTV_Opt",
                     OrigStructure = "CTV_Opt"
                 },
                 new OperationStepViewModel
                 {
-                    StepNumber = 3,
+                    StepNumber = 4,
+                    Category = OperationCategory.AddStructure,
+                    TargetStructure = "PTV_Final",
+                    DicomType = DicomType.PTV
+                },
+                new OperationStepViewModel
+                {
+                    StepNumber = 5,
                     Category = OperationCategory.BooleanOperation,
                     TargetStructure = "PTV_Final",
                     StructureA = "PTV_Opt",
@@ -153,7 +167,7 @@ namespace AutoStructureMaker.Tests
                 }
             };
 
-            var result = PreFlightValidator.Validate(ops, new List<string> { "CTV" });
+            var result = PreFlightValidator.Validate(ops, new List<string> { "CTV", "Empty_Result" });
             Assert.IsTrue(result.IsValid); // エラーではなく警告なので IsValid は true
             Assert.IsTrue(result.Warnings.Exists(w => w.Message.Contains("empty structure")));
         }
@@ -173,9 +187,51 @@ namespace AutoStructureMaker.Tests
             };
 
             // 患者輪郭は大文字混じり
-            var result = PreFlightValidator.Validate(ops, new List<string> { "CTV_Prostate" });
+            var result = PreFlightValidator.Validate(ops, new List<string> { "CTV_Prostate", "ptv_78gy" });
             Assert.IsTrue(result.IsValid, "Structure name resolution should be case-insensitive.");
             Assert.AreEqual(0, result.Errors.Count);
+        }
+
+        [TestMethod]
+        public void Validate_WhenBooleanTargetDoesNotExist_ReturnsError()
+        {
+            var ops = new List<OperationItemViewModel>
+            {
+                new OperationStepViewModel
+                {
+                    StepNumber = 1,
+                    Category = OperationCategory.BooleanOperation,
+                    TargetStructure = "Missing_Target_PTV",
+                    StructureA = "CTV",
+                    StructureB = "Bladder",
+                    BoolOpType = BoolOpeType.SUB
+                }
+            };
+
+            var result = PreFlightValidator.Validate(ops, new List<string> { "CTV", "Bladder" });
+            Assert.IsFalse(result.IsValid);
+            Assert.AreEqual(1, result.Errors.Count);
+            Assert.IsTrue(result.Errors.Exists(e => e.Message.Contains("Target structure 'Missing_Target_PTV' does not exist")));
+        }
+
+        [TestMethod]
+        public void Validate_WhenMarginTargetDoesNotExist_ReturnsError()
+        {
+            var ops = new List<OperationItemViewModel>
+            {
+                new OperationStepViewModel
+                {
+                    StepNumber = 1,
+                    Category = OperationCategory.Margin,
+                    TargetStructure = "Missing_Target_Margin",
+                    OrigStructure = "CTV"
+                }
+            };
+
+            var result = PreFlightValidator.Validate(ops, new List<string> { "CTV" });
+            Assert.IsFalse(result.IsValid);
+            Assert.AreEqual(1, result.Errors.Count);
+            Assert.IsTrue(result.Errors.Exists(e => e.Message.Contains("Target structure 'Missing_Target_Margin' does not exist")));
         }
 
         [TestMethod]

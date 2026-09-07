@@ -151,6 +151,16 @@ namespace AutoStructure.Common
                             break;
 
                         case OperationCategory.BooleanOperation:
+                            if (!availableStructures.Contains(target))
+                            {
+                                result.Issues.Add(new ValidationIssue
+                                {
+                                    StepNumber = stepNum,
+                                    IsError = true,
+                                    Message = $"Target structure '{target}' does not exist in patient dataset or earlier steps. You must add it first."
+                                });
+                            }
+
                             string strA = step.StructureA?.Trim();
                             string strB = step.StructureB?.Trim();
 
@@ -211,6 +221,16 @@ namespace AutoStructure.Common
                             break;
 
                         case OperationCategory.Margin:
+                            if (!availableStructures.Contains(target))
+                            {
+                                result.Issues.Add(new ValidationIssue
+                                {
+                                    StepNumber = stepNum,
+                                    IsError = true,
+                                    Message = $"Target structure '{target}' does not exist in patient dataset or earlier steps. You must add it first."
+                                });
+                            }
+
                             string orig = step.OrigStructure?.Trim();
                             if (string.IsNullOrWhiteSpace(orig))
                             {

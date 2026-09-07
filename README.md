@@ -1,8 +1,8 @@
-# AutoStructureMaker (v2.0)
+# AutoStructureMaker (v2.0.3)
 
 [![Eclipse v15.6 / v16.1](https://img.shields.io/badge/Varian%20Eclipse-v15.6%20%2F%20v16.1-blue.svg)](https://www.varian.com/)
 [![.NET Framework](https://img.shields.io/badge/.NET%20Framework-4.6.1-purple.svg)](https://dotnet.microsoft.com/)
-[![Tests](https://img.shields.io/badge/Unit%20Tests-57%20Passed-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Unit%20Tests-60%20Passed-brightgreen.svg)]()
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 VARIAN 社製放射線治療計画装置 **Eclipse (v15.6 / v16.1)** 向けの輪郭自動作成・編集支援スクリプト（ESAPI binary-plugin, Write-Access 型）です。
@@ -33,7 +33,7 @@ VARIAN 社製放射線治療計画装置 **Eclipse (v15.6 / v16.1)** 向けの�
   - **入力欄横リアルタイムバッジ**: `Target Structure`, `Structure A`, `Structure B`, `OrigStructure` の各入力欄横に、現在の解像度状態（`[HIGH]` / `[STD]` / `[NEW: STD]` / `[NEW: HIGH]`）をカラーバッジとツールチップで即座に可視化。
   - **ドロップダウン内バッジ**: プルダウンを開いた際、各輪郭名の右端に解像度バッジが表示され、選択時に解像度を確認可能。
 - **⚡ Boolean Auto-Align（異なる解像度輪郭の自動整合）**:
-  ESAPI の制約である「異なる解像度タイプ（Standard 256×256 と High 512×512）同士の Boolean 処理エラー」を根本解決。解像度不一致を自動検出し、一時作業構造体を介して高解像度へ自動整合（Auto-Align）して安全に演算。UI 上にも `⚡ Auto-Align (High-Res)` インジケーターを自動表示。
+  ESAPI の制約である「異なる解像度タイプ（Standard と High）同士の Boolean 処理エラー」を根本解決。解像度不一致を自動検出し、一時作業構造体を介して高解像度へ自動整合（Auto-Align）して安全に演算。UI 上にも `⚡ Auto-Align (High-Res)` インジケーターを自動表示。
 - **先行ステップ輪郭の自動伝播（手入力不要・オートコンプリート）**:
   先行ステップで新規作成された輪郭名が、後続ステップのドロップダウン候補リストに自動追加され、解像度（`[NEW: STD]` / `[NEW: HIGH]`）も追従表示。タイポ（打ち間違い）を根絶し、ワンクリックで選択可能。
 - **空輪郭・ロック中輪郭の完全安全ガード（Zero-Crash Guarantee）**:
@@ -45,7 +45,7 @@ VARIAN 社製放射線治療計画装置 **Eclipse (v15.6 / v16.1)** 向けの�
 - **施設別 XML 設定カスタマイズ (`AutoStructureMaker.config.xml`)**:
   院内ネットワーク共有フォルダ（UNCパス対応・高速フォールバック付き）、デフォルトの DICOM Type、論理演算、マージン設定を外部ファイルで柔軟にカスタマイズ可能。
 - **包括的自動単体テスト基盤 (`AutoStructureMaker.Tests`)**:
-  ESAPI 非依存のドメインロジックを分離し、57 項目におよぶ自動単体テスト（MSTest）を完備。100% PASS。
+  ESAPI 非依存のドメインロジックを分離し、60 項目におよぶ自動単体テスト（MSTest）を完備。100% PASS。
 
 ---
 
@@ -66,9 +66,9 @@ VARIAN 社製放射線治療計画装置 **Eclipse (v15.6 / v16.1)** 向けの�
 ## 🚀 導入・インストール方法
 
 1. **ビルド成果物の配置**:
-   ビルドによって生成された単一バイナリ `AutoStructureMaker_v2.0.2.esapi.dll`（Costura.Fody により依存 DLL が内包されています）を、Eclipse が参照可能なスクリプト共有フォルダに配置します。
+   ビルドによって生成された単一バイナリ `AutoStructureMaker_v2.0.3.esapi.dll`（Costura.Fody により依存 DLL が内包されています）を、Eclipse が参照可能なスクリプト共有フォルダに配置します。
 2. **ESAPI 承認 (Script Approval)**:
-   Eclipse 付属の管理者ツール「Script Approval」でスクリプトファイル（`AutoStructureMaker_v2.0.2.esapi.dll`）を登録・承認します（患者データを変更するため、Write-Access 権限の承認が必要です）。
+   Eclipse 付属の管理者ツール「Script Approval」でスクリプトファイル（`AutoStructureMaker_v2.0.3.esapi.dll`）を登録・承認します（患者データを変更するため、Write-Access 権限の承認が必要です）。
 3. **設定ファイル (`AutoStructureMaker.config.xml`) の配置**:
    施設固有の初期保存フォルダや既定値を設定した `AutoStructureMaker.config.xml` を、DLL と同一フォルダ、または `%APPDATA%\AutoStructureMaker\` に配置します（配置されていない場合は自動的にデフォルト設定が適用されます）。
 
@@ -77,7 +77,7 @@ VARIAN 社製放射線治療計画装置 **Eclipse (v15.6 / v16.1)** 向けの�
 ## 📖 操作方法
 
 1. **スクリプトの起動**:
-   Eclipse の「Tools」メニュー →「Scripts」から `AutoStructureMaker_v2.0.2.esapi.dll` を選択して実行します。
+   Eclipse の「Tools」メニュー →「Scripts」から `AutoStructureMaker_v2.0.3.esapi.dll` を選択して実行します。
 2. **テンプレートの読み込み**:
    「Load Template」ボタンを押し、保存済みの輪郭操作プロトコル（XML または CSV）を選択します。カード一覧にステップが自動展開されます。
 3. **ステップの追加・編集**:
@@ -165,7 +165,7 @@ AutoStructureMaker を安全かつ効率的にご活用いただくための各�
 | **Delete Structure** | 輪郭の削除 | Target Structure | 承認済み輪郭は保護。StructureSet から安全に完全除去。 |
 | **Boolean Operators** | 輪郭同士の論理演算 | Target, Op (SUB / AND / OR / XOR), A, B | 異なる解像度同士でも **Auto-Align** により自動高解像度整合して結合。 |
 | **Margin** | マージンの付加 | Target, Orig, Geometry (Inner / Outer), 6軸値 | 等方/異方の即時切替。入力値の自動フォールバック機能付き。 |
-| **High Res. Segment** | 高分解能輪郭への昇格 | Target Structure | 512×512 の高精細ボクセル表現へ昇格し、微小構造の精度を向上。 |
+| **High Res. Segment** | 高分解能輪郭への昇格 | Target Structure | 高精細ボクセル表現へ昇格し、微小構造の精度を向上。 |
 
 ---
 

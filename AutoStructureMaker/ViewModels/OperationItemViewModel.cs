@@ -63,6 +63,14 @@ namespace AutoStructure.ViewModels
             set => SetProperty(ref _statusBorderBrush, value);
         }
 
+        private string _statusToolTip = "Status";
+
+        public string StatusToolTip
+        {
+            get => _statusToolTip;
+            set => SetProperty(ref _statusToolTip, value);
+        }
+
         private ObservableCollection<string> _availableStructures;
 
         public ObservableCollection<string> AvailableStructures
@@ -174,17 +182,17 @@ namespace AutoStructure.ViewModels
                     if (info.IsNew)
                     {
                         return info.IsHighResolution
-                            ? "New structure from earlier step (High Resolution, 512x512)"
-                            : "New structure from earlier step (Standard Resolution, 256x256)";
+                            ? "New structure from earlier step (High Resolution)"
+                            : "New structure from earlier step (Standard Resolution)";
                     }
                     return info.IsHighResolution
-                        ? "High Resolution structure (512x512)"
-                        : "Standard Resolution structure (256x256)";
+                        ? "High Resolution structure"
+                        : "Standard Resolution structure";
                 }
             }
             if (ResolutionMap != null && ResolutionMap.TryGetValue(name, out bool isHi))
             {
-                return isHi ? "High Resolution structure (512x512)" : "Standard Resolution structure (256x256)";
+                return isHi ? "High Resolution structure" : "Standard Resolution structure";
             }
             return "New structure (not yet created in any earlier step)";
         }
@@ -207,9 +215,17 @@ namespace AutoStructure.ViewModels
             switch (_status)
             {
                 case "Done":
+                case "OK":
+                case "Pass":
                     StatusBrush = new SolidColorBrush(Color.FromRgb(232, 245, 233)); // Pale Green (#E8F5E9)
                     StatusBorderBrush = new SolidColorBrush(Color.FromRgb(165, 214, 167)); // Light Green (#A5D6A7)
                     StatusForeground = new SolidColorBrush(Color.FromRgb(46, 125, 50)); // Forest Green (#2E7D32)
+                    break;
+                case "Warn":
+                case "Warning":
+                    StatusBrush = new SolidColorBrush(Color.FromRgb(255, 248, 225)); // Pale Amber (#FFF8E1)
+                    StatusBorderBrush = new SolidColorBrush(Color.FromRgb(255, 224, 130)); // Light Amber (#FFE082)
+                    StatusForeground = new SolidColorBrush(Color.FromRgb(230, 81, 0)); // Dark Orange (#E65100)
                     break;
                 case "Ready":
                     StatusBrush = new SolidColorBrush(Color.FromRgb(227, 242, 253)); // Pale Blue (#E3F2FD)
@@ -222,6 +238,7 @@ namespace AutoStructure.ViewModels
                     StatusForeground = new SolidColorBrush(Color.FromRgb(120, 144, 156)); // BlueGrey Text (#78909C)
                     break;
                 case "Fail":
+                case "Error":
                     StatusBrush = new SolidColorBrush(Color.FromRgb(255, 235, 238)); // Pale Red (#FFEBEE)
                     StatusBorderBrush = new SolidColorBrush(Color.FromRgb(239, 154, 154)); // Light Red (#EF9A9A)
                     StatusForeground = new SolidColorBrush(Color.FromRgb(198, 40, 40)); // Dark Red (#C62828)
@@ -237,16 +254,19 @@ namespace AutoStructure.ViewModels
         public void SetStatusResult(bool success)
         {
             Status = success ? "Done" : "Fail";
+            StatusToolTip = success ? "Execution completed successfully" : "Execution failed";
         }
 
         public void SetStatusSkipped()
         {
             Status = "Skip";
+            StatusToolTip = "Step is disabled (skipped)";
         }
 
         public void ResetStatus()
         {
             Status = "--";
+            StatusToolTip = "Status";
         }
 
         public void UpdateAvailableStructures(StructureSet structureSet)
