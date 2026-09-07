@@ -8,8 +8,9 @@
 
 1. [スクリプト起動・環境関連トラブル](#1-スクリプト起動環境関連トラブル)
    - 1.1 [Script Approval で承認されない / エラーになる](#11-script-approval-で承認されない--エラーになる)
-   - 1.2 [Write-Access 権限エラー（患者データを変更できない）](#12-write-access-権限エラー患者データを変更できない)
-   - 1.3 [.NET Framework バージョン不一致で起動しない](#13-net-framework-バージョン不一致で起動しない)
+   - 1.2 [「Script file must provide implementation for class VMS.TPS.Script」エラーで起動できない](#12-script-file-must-provide-implementation-for-class-vmstpsscript-エラーで起動できない)
+   - 1.3 [Write-Access 権限エラー（患者データを変更できない）](#13-write-access-権限エラー患者データを変更できない)
+   - 1.4 [.NET Framework バージョン不一致で起動しない](#14-net-framework-バージョン不一致で起動しない)
 2. [輪郭操作実行時トラブル](#2-輪郭操作実行時トラブル)
    - 2.1 [ステータスが「Fail」になる（原因の特定方法）](#21-ステータスがfailになる原因の特定方法)
    - 2.2 [既存輪郭との重複エラー (`Structure already exists`)](#22-既存輪郭との重複エラー-structure-already-exists)
@@ -19,7 +20,7 @@
    - 2.6 [参照元輪郭が空の場合の安全スキップ (`Source structure is empty`)](#26-参照元輪郭が空の場合の安全スキップ-source-structure-is-empty)
    - 2.7 [解像度タイプ不一致による Boolean エラー](#27-解像度タイプ不一致による-boolean-エラー)
    - 2.8 [事前検査（Pre-Flight Validation）でエラーが表示された場合の対処](#28-事前検査pre-flight-validationでエラーが表示された場合の対処)
-   - 2.9 [実行後に入力欄（Target Structure や Create Margin From 等）が空欄になる](#29-実行後に入力欄target-structure-や-create-margin-from-等が空欄になる)
+   - 2.9 [入力欄（Target Structure や Create Margin From 等）が空欄になる / 選択が反映されない](#29-入力欄target-structure-や-create-margin-from-等が空欄になる--選択が反映されない)
 3. [テンプレート・設定関連トラブル](#3-テンプレート設定関連トラブル)
    - 3.1 [XML テンプレート読み込み時にエラーが出る](#31-xml-テンプレート読み込み時にエラーが出る)
    - 3.2 [保存ダイアログの初期フォルダが開くのに非常に時間がかかる](#32-保存ダイアログの初期フォルダが開くのに非常に時間がかかる)
@@ -41,7 +42,18 @@
 
 ---
 
-### 1.2 Write-Access 権限エラー（患者データを変更できない）
+### 1.2 「Script file must provide implementation for class VMS.TPS.Script」エラーで起動できない
+- **現象**: Eclipse からスクリプトを実行した際、「Script file must provide implementation for class VMS.TPS.Script」というダイアログが表示されて起動しない。
+- **原因**:
+  - Eclipse はプラグイン DLL をロードする際、リフレクション（`Assembly.GetTypes()`）によって `VMS.TPS.Script` クラスを探索します。
+  - このとき `Script` クラスが外部ライブラリ（`EsapiEssentials.ScriptBase` 等）を継承していると、Costura.Fody のモジュール初期化子（`.cctor` による内包 DLL の自動展開）が動く前に外部 DLL の解決に失敗し、`ReflectionTypeLoadException` がスローされて Eclipse 側でエントリポイントクラスが「存在しない」と判定されてしまいます。
+- **対処法（v2.0.2 で根本修正済み）**:
+  - `AutoStructureMaker` v2.0.2 では、`VMS.TPS.Script` を外部アセンブリに依存しない**純粋な POCO クラス（`System.Object` 継承）**として設計刷新し、`[MethodImpl(MethodImplOptions.NoInlining)]` で Eclipse ネイティブの実行エントリポイントを実装しています。
+  - v2.0.2 の最新 `AutoStructureMaker.esapi.dll` を配置してご利用ください。
+
+---
+
+### 1.3 Write-Access 権限エラー（患者データを変更できない）
 - **現象**: スクリプト起動時に「Cannot modify patient」や「Write access denied」等のエラーが表示される。
 - **原因**: ログイン中の Eclipse ユーザーアカウントに ESAPI の Write-Access（データ書き込み・変更権限）が付与されていない。
 - **対処法**:
@@ -50,7 +62,7 @@
 
 ---
 
-### 1.3 .NET Framework バージョン不一致で起動しない
+### 1.4 .NET Framework バージョン不一致で起動しない
 - **現象**: スクリプトを実行しても画面が表示されず、無反応または即座に終了する。
 - **原因**: ワークステーションに .NET Framework 4.6.1 以上がインストールされていない。
 - **対処法**: Windows Update または Microsoft 公式サイトから .NET Framework 4.6.1（または 4.7.2 / 4.8）をインストールしてください。
@@ -125,14 +137,16 @@
 
 ---
 
-### 2.9 実行後に入力欄（Target Structure や Create Margin From 等）が空欄になる
-- **現象**: 「▶ RUN」ボタンを押してマージン処理等を実行した後、操作カード上の `Target Structure` や `Create Margin From`（または Boolean の `First Structure (A)` / `Second Structure (B)`）が突然空欄（空文字）になることがある。
+### 2.9 入力欄（Target Structure や Create Margin From 等）が空欄になる / 選択が反映されない
+- **現象**:
+  - 操作カード上の `Target Structure` や `Create Margin From`（または Boolean の `First Structure (A)` / `Second Structure (B)`）のドロップダウンから輪郭を選択しても、フォーカスが外れた際や直後に空欄に戻ってしまう。
+  - 「▶ RUN」ボタンを押してマージン処理等を実行した後、またはステップの追加・削除・並び替えを行った際に、入力していた輪郭名が突然空欄（空文字）になる。
 - **原因**:
-  - スクリプト実行完了後に StructureSet の最新輪郭一覧を自動同期する際、WPF の `ComboBox` がバインド先コレクションの要素クリア（`Clear()`）を検知し、選択解除によって ViewModel のテキストを空文字 `""` で上書きしてしまうことが原因です。
-  - 特に先行ステップで `Add` された輪郭や既存輪郭をドロップダウンから選択していた場合、その輪郭がアイテムとして認識されるため、同期時に選択解除の副作用を受けやすくなります。
-- **対策（v2.0.1）**:
-  - 本バージョンでは、コレクション同期ロジックを **スマート・インプレース同期（Smart In-Place Sync）** へ刷新し、既存輪郭のインスタンス参照を維持したままプロパティのみを更新するよう修正されました。
-  - さらに、同期処理の前後に **多層入力値保護ガード（Defense-in-Depth）** を導入しているため、実行後も入力した輪郭名パラメータが完全に保持されます。
+  - **原因 1 (バインディング更新タイミング)**: WPF `ComboBox` のテキストバインディング既定値が `LostFocus` である場合、ドロップダウンからアイテムを選択した直後や未確定フォーカス時に ViewModel へのプロパティ更新が遅延・喪失していました。
+  - **原因 2 (選択解除イベントの逆流)**: スクリプト実行後やステップ操作時に輪郭リストのコンテキスト同期を行う際、WPF の `ComboBox` がアイテムコレクションの再評価を検知して内部的に `SelectedItem = null` を強制設定（Coerce）し、それが TwoWay バインディングを通じて ViewModel に空文字 `""` を書き戻していました。先行ステップで作成した輪郭が消去されると、後続ステップの候補からも連鎖的に消去される現象が発生していました。
+- **対策（v2.0.2 で根本修正・多層防御）**:
+  - **即時反映 (`UpdateSourceTrigger=PropertyChanged`)**: 全ての輪郭選択 ComboBox のバインディングに `UpdateSourceTrigger=PropertyChanged` を指定し、ドロップダウンでの選択・入力が遅延なく ViewModel へ即時反映されます。
+  - **同期中空文字遮断 (`IsSyncingContext` ガード)**: `OperationItemViewModel` に `IsSyncingContext` フラグを導入。コンテキスト同期処理中および ComboBox の選択解除イベントによって発生する空文字上書きをセッターレベルで厳密に遮断し、入力値を完全に保護しています。
 
 ---
 

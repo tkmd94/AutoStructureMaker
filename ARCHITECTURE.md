@@ -41,7 +41,7 @@ AutoStructureMaker は、Varian 社製放射線治療計画装置 Eclipse の ES
 5. **実行前自動検証 (Pre-Flight Validation)**:
    実行前または「✔ Check」ボタン押下時に、未定義輪郭の参照、空入力、重複作成、自己減算等のパイプライン不整合を一括自動検出し、事故を未然に防止。
 6. **テスト容易性 (Testability)**:
-   ESAPI API が存在しない開発・CI 環境でも、UI ロジック、テンプレート変換、マージンパース、輪郭伝播、解像度整合判定、事前検証を自動検証できる単体テスト基盤（全40テスト）を完備。
+   ESAPI API が存在しない開発・CI 環境でも、UI ロジック、テンプレート変換、マージンパース、輪郭伝播、解像度整合判定、事前検証、WPF ComboBox 結合を自動検証できる単体テスト基盤（全57テスト 100% PASS）を完備。
 
 ---
 
@@ -122,14 +122,14 @@ AutoStructureMaker/
 │       ├── RelayCommand.cs               # ICommand 実装
 │       ├── OperationItemViewModel.cs     # 操作ステップ基底 & 統合 ViewModel (IsEnabled/Duplicate対応)
 │       └── MainViewModel.cs              # メイン ViewModel (輪郭伝播・事前検証・実行制御)
-├── AutoStructureMaker.Runner/            # スタンドアロン実行・デバッグ用プロジェクト
-└── AutoStructureMaker.Tests/             # 自動単体テストプロジェクト (全40テスト 100% PASS)
+├── AutoStructureMaker.Runner/            # スタンドアロン実行・デバッグ用プロジェクト (RunnerScript アダプタ)
+└── AutoStructureMaker.Tests/             # 自動単体テストプロジェクト (全57テスト 100% PASS)
     ├── AutoStructureMaker.Tests.csproj
-    ├── MainViewModelTests.cs             # 伝播・コレクション同期・複製・検証テスト (9件)
-    ├── OperationStepViewModelTests.cs    # カード切替・解像度バッジ・Auto-Align・ガードテスト (15件)
-    ├── PreFlightValidatorTests.cs        # 事前検証エンジンテスト (未定義/重複/空入力等 7件)
-    ├── TemplateServiceTests.cs           # XML / CSV 相互変換・Enabled永続化・破損耐性テスト (6件)
-    └── AppConfigTests.cs                 # 設定シリアライズ・UNC高速フォールバックテスト (3件)
+    ├── MainViewModelTests.cs             # 伝播・コレクション同期・WPF ComboBox結合・複製・検証テスト (18件)
+    ├── OperationStepViewModelTests.cs    # カード切替・解像度バッジ・Auto-Align・ガードテスト (23件)
+    ├── PreFlightValidatorTests.cs        # 事前検証エンジンテスト (未定義/重複/空入力/DICOM長等 8件)
+    ├── TemplateServiceTests.cs           # XML / CSV 相互変換・Enabled永続化・破損耐性テスト (7件)
+    └── AppConfigTests.cs                 # 設定シリアライズ・UNC高速フォールバックテスト (4件)
 ```
 
 ---
@@ -137,9 +137,13 @@ AutoStructureMaker/
 ## 4. レイヤー別詳細設計
 
 ### 4.1 エントリポイント層 (Host Integration)
-- **`Script.cs`**: ESAPI の `[Script(IsWriteable = true)]` 属性を持ち、Eclipse から `Execute(ScriptContext context, Window window)` が呼び出されます。
-  - `context.StructureSet` を取得して `MainViewModel.StructureSet` に注入。
-  - `MainControl` をインスタンス化してモーダルウィンドウのコンテンツとして展開します。
+- **`Script.cs` (ESAPI 本番プラグイン)**:
+  - ESAPI の仕様上、Eclipse はスクリプト実行時にプラグイン DLL の全型走査（`Assembly.GetTypes()`）を実行し、`VMS.TPS.Script` を探索します。
+  - この型走査は Costura.Fody のモジュール初期化子（`.cctor` による内包 DLL 自動解決ハンドラ登録）より先に実行されるため、外部ライブラリ（`EsapiEssentials.ScriptBase` 等）を直接継承していると `ReflectionTypeLoadException` が発生し、Eclipse 上で `Script file must provide implementation for class VMS.TPS.Script` エラーとなります。
+  - そのため、本プラグインでは外部ライブラリに一切依存しない**純粋な POCO クラス（`System.Object` 継承）**として実装し、`[MethodImpl(MethodImplOptions.NoInlining)] public void Execute(ScriptContext context)` を提供しています。
+  - 実行時に `ScriptContext` から `StructureSet` を取得し、WPF `Window` を生成して `MainControl` をモーダル表示します。
+- **`AutoStructureMaker.Runner` (開発・テスト用アダプタ)**:
+  - スタンドアロン実行環境向けに `RunnerScript : ScriptBase` アダプタクラスを提供し、開発環境での UI デバッグおよびテスタビリティを両立しています。
 
 ### 4.2 プレゼンテーション層 (WPF / MVVM)
 - **`MainViewModel.cs`**:
@@ -317,12 +321,12 @@ AutoStructureMaker では、放射線治療計画装置というクリティカ�
 
 ## 7. 単体テスト自動化基盤 (`AutoStructureMaker.Tests`)
 
-本プロジェクトには、ESAPI のバイナリ環境に依存せず、CI / CD や開発機上で即座に実行可能な **40 件の自動単体テスト（MSTest）** が完備されています（`test.bat` でワンクリック実行可能）：
+本プロジェクトには、ESAPI のバイナリ環境に依存せず、CI / CD や開発機上で即座に実行可能な **57 件の自動単体テスト（MSTest）** が完備されています（`test.bat` でワンクリック実行可能）：
 
 | テストクラス | テスト数 | 主な検証項目 |
 |:---|:---:|:---|
-| **`MainViewModelTests`** | 9 | コマンド（AddStep, MoveUp, MoveDown, Remove, DuplicateStep, ValidatePreFlight）、ステップ番号自動採番、コレクション同期、無効ステップ伝播除外 |
-| **`OperationStepViewModelTests`** | 15 | カテゴリー別可視性切替、等方/異方マージン連動、解像度バッジ表示、⚡ Auto-Align 不一致検出、先行ステップ輪郭伝播、Hi-Res 昇格伝播、IsEnabled トグル、空輪郭・ロック輪郭安全ガード |
-| **`PreFlightValidatorTests`** | 7 | 存在しない参照輪郭の検出、重複作成エラー、空の輪郭名検出、自己減算警告、空輪郭警告、承認輪郭警告、全ステップ正常ケース |
-| **`TemplateServiceTests`** | 6 | XML テンプレートのシリアライズ/デシリアライズ、Enabled 属性の永続化、レガシー CSV 読み込み、破損 CSV 行のスキップ耐性 |
-| **`AppConfigTests`** | 3 | デフォルト設定値検証、XML シリアライズ、未接続 UNC ネットワークパスの高速タイムアウト（1秒フォールバック） |
+| **`MainViewModelTests`** | 18 | コマンド（AddStep, MoveUp, MoveDown, Remove, DuplicateStep, ValidatePreFlight）、ステップ番号自動採番、コレクション同期、無効ステップ伝播除外、スマート・インプレース同期、WPF ComboBox 双方向バインディング結合テスト、埋め込み PDF マニュアル存在検証 |
+| **`OperationStepViewModelTests`** | 23 | カテゴリー別可視性切替、等方/異方マージン連動、解像度バッジ表示、⚡ Auto-Align 不一致検出、先行ステップ輪郭伝播、Hi-Res 昇格伝播、IsEnabled トグル、空輪郭・ロック輪郭安全ガード、全解像度組み合わせ網羅検証 |
+| **`PreFlightValidatorTests`** | 8 | 存在しない参照輪郭の検出、重複作成エラー、空の輪郭名検出、自己減算警告、空輪郭警告、承認輪郭警告、DICOM 名文字数上限（16文字）警告、空白のみ輪郭名エラー、全ステップ正常ケース |
+| **`TemplateServiceTests`** | 7 | XML テンプレートのシリアライズ/デシリアライズ、Enabled 属性の永続化、レガシー CSV 読み込み、破損 CSV 行のスキップ耐性、余分な空白トリム耐性、破損 XML 例外耐性 |
+| **`AppConfigTests`** | 4 | デフォルト設定値検証、XML シリアライズ、未接続 UNC ネットワークパスの高速タイムアウト（1秒フォールバック）、破損設定ファイル読み込み時の安全フォールバック |

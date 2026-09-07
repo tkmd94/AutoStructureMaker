@@ -2,7 +2,7 @@
 
 [![Eclipse v15.6 / v16.1](https://img.shields.io/badge/Varian%20Eclipse-v15.6%20%2F%20v16.1-blue.svg)](https://www.varian.com/)
 [![.NET Framework](https://img.shields.io/badge/.NET%20Framework-4.6.1-purple.svg)](https://dotnet.microsoft.com/)
-[![Tests](https://img.shields.io/badge/Unit%20Tests-53%20Passed-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Unit%20Tests-57%20Passed-brightgreen.svg)]()
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 VARIAN 社製放射線治療計画装置 **Eclipse (v15.6 / v16.1)** 向けの輪郭自動作成・編集支援スクリプト（ESAPI binary-plugin, Write-Access 型）です。
@@ -45,7 +45,7 @@ VARIAN 社製放射線治療計画装置 **Eclipse (v15.6 / v16.1)** 向けの�
 - **施設別 XML 設定カスタマイズ (`AutoStructureMaker.config.xml`)**:
   院内ネットワーク共有フォルダ（UNCパス対応・高速フォールバック付き）、デフォルトの DICOM Type、論理演算、マージン設定を外部ファイルで柔軟にカスタマイズ可能。
 - **包括的自動単体テスト基盤 (`AutoStructureMaker.Tests`)**:
-  ESAPI 非依存のドメインロジックを分離し、40 項目におよぶ自動単体テスト（MSTest）を完備。100% PASS。
+  ESAPI 非依存のドメインロジックを分離し、57 項目におよぶ自動単体テスト（MSTest）を完備。100% PASS。
 
 ---
 

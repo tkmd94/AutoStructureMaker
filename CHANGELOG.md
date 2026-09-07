@@ -5,6 +5,27 @@ AutoStructureMaker のすべての重要な変更は、本ファイルに記録�
 
 ---
 
+## [2.0.2] - 2026-09-07
+
+### 🐛 修正 (Fixed)
+- **ESAPI プラグイン起動エラー (`Script file must provide implementation for class VMS.TPS.Script`) の根本解消**:
+  - `AutoStructureMaker/Script.cs` において、外部アセンブリ（`EsapiEssentials.ScriptBase`）の継承を廃止し、純粋な POCO クラス（`System.Object` 継承）として再実装。
+  - Eclipse の型走査（`GetTypes()`）が Costura.Fody のモジュール初期化子（`.cctor` / `AssemblyResolve`）より先に実行されることで発生していた `ReflectionTypeLoadException` を完全に回避。
+  - スタンドアロン実行環境 (`AutoStructureMaker.Runner`) 向けに `RunnerScript : ScriptBase` アダプタクラスを導入し、開発時・テスト時の互換性を維持。
+  - `FodyWeavers.xml` およびプロジェクト参照から ESAPI ランタイム依存（`VMS.TPS.Common.Model.API`, `Types`）の不要な埋め込み・重複参照を整理。
+- **ComboBox 入力値（Target Structure / Create Margin From 等）の消失バグの恒久修正**:
+  - `UC_OperationCard.xaml` 内の各輪郭選択 ComboBox (`TargetStructure`, `OrigStructure`, `StructureA`, `StructureB`) のデータバインディングに `UpdateSourceTrigger=PropertyChanged` を明示指定。ドロップダウン選択やフォーカス移動時に入力値が即時 ViewModel に反映されるよう改善。
+  - `OperationItemViewModel` に `IsSyncingContext` プロパティを新設し、コンテキスト同期中および ComboBox 選択解除イベント（WPF の `CoerceText`）による空文字上書きをセッターレベルで完全遮断（多層防御）。
+  - 先行ステップで定義された輪郭がドロップダウンから選択された後、後続ステップやコンテキスト同期によって連鎖的に消去される不具合を根絶。
+
+### 🌟 追加 (Added)
+- **包括的自動 UI レンダリング・検証スイート (`scratch/CaptureUi.cs`)**:
+  - 実機 WPF ウィンドウレンダリングによる全 8 シナリオ（初期状態、5 カテゴリーカード展開、複製・無効化トグル、Uniform Margin 切替、Pre-Flight Check ログ表示、埋め込み PDF マニュアル認識、XML テンプレート保存・読込ラウンドトリップ、ESAPI エントリポイント実行）の自動スクリーンショット記録・検証を完了。
+- **自動単体テストの拡充 (全 57 件 100% PASS)**:
+  - WPF ComboBox バインディング同期テスト、コンテキスト伝播テスト、ステップ無効化連動テストを追加し、テスト件数を 40 件から 57 件へ拡充。
+
+---
+
 ## [2.0.1] - 2026-09-07
 
 ### 🐛 修正 (Fixed)
