@@ -33,10 +33,10 @@
 ### 1.1 Script Approval で承認されない / エラーになる
 - **現象**: Eclipse の Script Approval ツールに DLL を登録しようとするとエラーが発生する、または承認チェックボックスが有効にならない。
 - **原因**:
-  - `AutoStructureMaker.esapi.dll` が適切な管理者権限で配置されていない。
+  - `AutoStructureMaker_v2.0.2.esapi.dll` が適切な管理者権限で配置されていない。
   - Web からダウンロードしたバイナリに Windows のセキュリティブロック（Mark of the Web）が付与されている。
 - **対処法**:
-  1. エクスプローラーで `AutoStructureMaker.esapi.dll` を右クリック →「プロパティ」を開きます。
+  1. エクスプローラーで `AutoStructureMaker_v2.0.2.esapi.dll` を右クリック →「プロパティ」を開きます。
   2. 全般タブの一番下にある **「セキュリティ: 許可する（Unblock）」** にチェックを入れ、「OK」をクリックします。
   3. Eclipse の Script Approval ツールを管理者として実行し、再登録します。
 
@@ -49,7 +49,7 @@
   - このとき `Script` クラスが外部ライブラリ（`EsapiEssentials.ScriptBase` 等）を継承していると、Costura.Fody のモジュール初期化子（`.cctor` による内包 DLL の自動展開）が動く前に外部 DLL の解決に失敗し、`ReflectionTypeLoadException` がスローされて Eclipse 側でエントリポイントクラスが「存在しない」と判定されてしまいます。
 - **対処法（v2.0.2 で根本修正済み）**:
   - `AutoStructureMaker` v2.0.2 では、`VMS.TPS.Script` を外部アセンブリに依存しない**純粋な POCO クラス（`System.Object` 継承）**として設計刷新し、`[MethodImpl(MethodImplOptions.NoInlining)]` で Eclipse ネイティブの実行エントリポイントを実装しています。
-  - v2.0.2 の最新 `AutoStructureMaker.esapi.dll` を配置してご利用ください。
+  - v2.0.2 の最新 `AutoStructureMaker_v2.0.2.esapi.dll` を配置してご利用ください。
 
 ---
 

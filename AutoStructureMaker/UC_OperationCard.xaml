@@ -11,7 +11,7 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/AutoStructureMaker.esapi;component/Theme.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/AutoStructureMaker_v2.0.2.esapi;component/Theme.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BoolToVis" />
 

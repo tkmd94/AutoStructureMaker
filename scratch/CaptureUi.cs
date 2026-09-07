@@ -63,7 +63,7 @@ namespace UiCapture
                 // Theme.xaml をマージ
                 var themeDict = new ResourceDictionary
                 {
-                    Source = new Uri("pack://application:,,,/AutoStructureMaker.esapi;component/Theme.xaml", UriKind.Absolute)
+                    Source = new Uri("pack://application:,,,/AutoStructureMaker_v2.0.2.esapi;component/Theme.xaml", UriKind.Absolute)
                 };
                 app.Resources.MergedDictionaries.Add(themeDict);
 

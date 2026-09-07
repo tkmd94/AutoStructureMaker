@@ -49,7 +49,7 @@ Developer PowerShell または Visual Studio コマンドプロンプトから�
 & "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" AutoStructureMaker.sln /p:Configuration=Release /p:Platform=x64 /t:Rebuild
 ```
 
-- ビルド成果物は `AutoStructureMaker\bin\x64\Release\AutoStructureMaker.esapi.dll` に出力されます。
+- ビルド成果物は `AutoStructureMaker\bin\x64\Release\AutoStructureMaker_v2.0.2.esapi.dll` に出力されます。
 - `Costura.Fody` により、依存するマネージド DLL が単一のバイナリ内に自動マージ（ILRepack / 埋め込み）されます。
 
 ---
@@ -57,7 +57,7 @@ Developer PowerShell または Visual Studio コマンドプロンプトから�
 ## 3. 単体テストの実行
 
 本プロジェクトは ESAPI DLL が存在しない CI / 開発環境でもテストが動作するように設計されています。
-リポジトリ直下に配置された `test.bat` を実行することで、ソリューションのビルドと全 40 件の単体テストをワンクリックで連続実行できます。
+リポジトリ直下に配置された `test.bat` を実行することで、ソリューションのビルドと全 57 件の単体テストをワンクリックで連続実行できます。
 
 ```bat
 :: リポジトリ直下の test.bat を実行 (MSBuild x64 ビルド + vstest 一括実行)
