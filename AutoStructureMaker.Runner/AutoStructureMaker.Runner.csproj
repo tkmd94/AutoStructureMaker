@@ -153,6 +153,10 @@
       <Link>AutoStructureMaker.config.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="..\AutoStructureMaker_Manual.pdf">
+      <Link>AutoStructureMaker_Manual.pdf</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AutoStructureMaker\AutoStructureMaker.csproj">

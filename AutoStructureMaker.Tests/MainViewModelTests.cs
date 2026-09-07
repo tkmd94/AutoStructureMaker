@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using AutoStructure;
@@ -413,6 +414,27 @@ namespace AutoStructureMaker.Tests
             Assert.AreEqual("CTV", marginOp.OrigStructure, "ViewModel OrigStructure must be preserved.");
             Assert.AreEqual("PTV", cbTarget.Text, "ComboBox Target text must be preserved.");
             Assert.AreEqual("CTV", cbOrig.Text, "ComboBox Orig text must be preserved.");
+        }
+
+        [TestMethod]
+        public void OpenHelpCommand_CanExecute_AndEmbeddedManualResourceExists()
+        {
+            // Assert OpenHelpCommand is available and executable
+            Assert.IsNotNull(_vm.OpenHelpCommand);
+            Assert.IsTrue(_vm.OpenHelpCommand.CanExecute(null));
+
+            // Verify embedded PDF resource in AutoStructureMaker assembly
+            var asm = typeof(MainViewModel).Assembly;
+            var resourceNames = asm.GetManifestResourceNames();
+            var manualResource = resourceNames.FirstOrDefault(r => r.EndsWith("AutoStructureMaker_Manual.pdf", StringComparison.OrdinalIgnoreCase));
+
+            Assert.IsNotNull(manualResource, $"Embedded manual resource not found among: {string.Join(", ", resourceNames)}");
+
+            using (var stream = asm.GetManifestResourceStream(manualResource))
+            {
+                Assert.IsNotNull(stream);
+                Assert.IsTrue(stream.Length > 100000, $"Embedded manual size is unexpectedly small: {stream.Length} bytes");
+            }
         }
     }
 }

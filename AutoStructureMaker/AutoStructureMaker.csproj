@@ -148,6 +148,13 @@
     <None Include="AutoStructureMaker.config.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="..\AutoStructureMaker_Manual.pdf">
+      <Link>AutoStructureMaker_Manual.pdf</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\AutoStructureMaker_Manual.pdf" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="Theme.xaml">

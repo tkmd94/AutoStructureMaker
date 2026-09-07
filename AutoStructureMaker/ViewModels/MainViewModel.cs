@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Windows;
 using System.Windows.Input;
@@ -81,6 +83,7 @@ namespace AutoStructure.ViewModels
         public ICommand DeleteCommand { get; }
         public ICommand SaveCommand { get; }
         public ICommand LoadCommand { get; }
+        public ICommand OpenHelpCommand { get; }
 
         public ICommand MoveUpCommand { get; }
         public ICommand MoveDownCommand { get; }
@@ -119,6 +122,7 @@ namespace AutoStructure.ViewModels
             DeleteCommand = new RelayCommand(ExecuteDelete, () => HasOperations);
             SaveCommand = new RelayCommand(ExecuteSave, () => HasOperations);
             LoadCommand = new RelayCommand(ExecuteLoad);
+            OpenHelpCommand = new RelayCommand(ExecuteOpenHelp);
 
             MoveUpCommand = new RelayCommand(
                 p => ExecuteMoveUp(p as OperationItemViewModel),
@@ -871,6 +875,80 @@ namespace AutoStructure.ViewModels
                 {
                     MessageBox.Show($"Failed to load file: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
+            }
+        }
+
+        public void ExecuteOpenHelp()
+        {
+            try
+            {
+                // 1. 実行アセンブリ周辺およびプロジェクト内の PDF ファイルを探索
+                string assemblyLoc = null;
+                try
+                {
+                    assemblyLoc = Assembly.GetExecutingAssembly().Location;
+                }
+                catch { }
+
+                string assemblyDir = !string.IsNullOrEmpty(assemblyLoc) ? Path.GetDirectoryName(assemblyLoc) : AppDomain.CurrentDomain.BaseDirectory;
+
+                var candidatePaths = new List<string>
+                {
+                    Path.Combine(assemblyDir, "AutoStructureMaker_Manual.pdf"),
+                    Path.Combine(assemblyDir, "docs", "AutoStructureMaker_Manual.pdf"),
+                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AutoStructureMaker_Manual.pdf"),
+                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "docs", "AutoStructureMaker_Manual.pdf")
+                };
+
+                foreach (var path in candidatePaths)
+                {
+                    if (File.Exists(path))
+                    {
+                        Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
+                        AppendLog($"(HELP) Opened manual: {path}");
+                        return;
+                    }
+                }
+
+                // 2. ディスク上に見つからない場合、アセンブリ内に埋め込まれたリソース (EmbeddedResource) から %TEMP% に展開
+                var assembly = Assembly.GetExecutingAssembly();
+                string resourceName = assembly.GetManifestResourceNames()
+                    .FirstOrDefault(n => n.EndsWith("AutoStructureMaker_Manual.pdf", StringComparison.OrdinalIgnoreCase)
+                                      || n.EndsWith("Manual.pdf", StringComparison.OrdinalIgnoreCase));
+
+                if (resourceName != null)
+                {
+                    string tempPdfPath = Path.Combine(Path.GetTempPath(), "AutoStructureMaker_Manual.pdf");
+                    using (var stream = assembly.GetManifestResourceStream(resourceName))
+                    {
+                        if (stream != null)
+                        {
+                            using (var fs = new FileStream(tempPdfPath, FileMode.Create, FileAccess.Write, FileShare.Read))
+                            {
+                                stream.CopyTo(fs);
+                            }
+                            Process.Start(new ProcessStartInfo(tempPdfPath) { UseShellExecute = true });
+                            AppendLog($"(HELP) Extracted and opened embedded manual: {tempPdfPath}");
+                            return;
+                        }
+                    }
+                }
+
+                MessageBox.Show(
+                    "マニュアル PDF が見つかりませんでした。\nファイルが存在するか、またはリソースが正しく埋め込まれているか確認してください。",
+                    "AutoStructureMaker Help",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"マニュアルを開く際にエラーが発生しました:\n{ex.Message}",
+                    "AutoStructureMaker Help Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
             }
         }
     }

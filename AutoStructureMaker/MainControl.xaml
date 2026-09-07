@@ -69,10 +69,15 @@
                                  Width="160" Height="26" VerticalContentAlignment="Center" Padding="4,0" 
                                  ToolTip="テンプレートプロトコル名" Margin="0,0,12,0" />
 
-                        <Border Background="#ECEFF1" CornerRadius="12" Padding="8,3" VerticalAlignment="Center">
+                        <Border Background="#ECEFF1" CornerRadius="12" Padding="8,3" VerticalAlignment="Center" Margin="0,0,8,0">
                             <TextBlock Text="{Binding OperationsSummaryText}" FontSize="11" FontWeight="SemiBold" 
                                        Foreground="#455A64" />
                         </Border>
+
+                        <Button x:Name="helpButton" Content="❓  Help" Command="{Binding OpenHelpCommand}" 
+                                Height="28" Padding="10,2" Margin="2,0,0,0" FontWeight="SemiBold"
+                                Background="#F1F5F9" Foreground="#334155" BorderBrush="#CBD5E1"
+                                ToolTip="総合技術・臨床運用マニュアル (PDF) を開く" />
                     </StackPanel>
                 </DockPanel>
             </Border>
