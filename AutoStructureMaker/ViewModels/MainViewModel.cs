@@ -139,6 +139,22 @@ namespace AutoStructure.ViewModels
 
             Operations.CollectionChanged += (s, e) =>
             {
+                if (e.OldItems != null)
+                {
+                    foreach (OperationItemViewModel item in e.OldItems)
+                    {
+                        item.PropertyChanged -= OnOperationPropertyChanged;
+                    }
+                }
+                if (e.NewItems != null)
+                {
+                    foreach (OperationItemViewModel item in e.NewItems)
+                    {
+                        item.PropertyChanged -= OnOperationPropertyChanged;
+                        item.PropertyChanged += OnOperationPropertyChanged;
+                    }
+                }
+
                 UpdateStepNumbers();
                 RefreshStepStructureContexts();
                 OnPropertyChanged(nameof(HasOperations));
@@ -277,6 +293,7 @@ namespace AutoStructure.ViewModels
         /// <summary>
         /// 先行ステップの作成予定輪郭を後続ステップのドロップダウン候補に自動追加・伝播し、
         /// 各ステップ時点での解像度マップをリアルタイムに同期・計算します。
+        /// 同期処理中も UI の入力値（TargetStructure, OrigStructure 等）が消失しないよう多層保護します。
         /// </summary>
         public void RefreshStepStructureContexts()
         {
@@ -296,11 +313,39 @@ namespace AutoStructure.ViewModels
                 {
                     var op = Operations[i];
 
+                    // 同期直前のユーザー入力値を保護・退避
+                    string savedTarget = op.TargetStructure;
+                    var stepVm = op as OperationStepViewModel;
+                    string savedOrig = stepVm?.OrigStructure;
+                    string savedStrA = stepVm?.StructureA;
+                    string savedStrB = stepVm?.StructureB;
+
                     // ステップ i 開始時点のコンテキストを要素単位で同期（参照は維持）
                     SyncCollection(op.AvailableStructures, currentContext.Keys);
                     SyncStructureInfos(op.AvailableStructureInfos, currentContext.Values);
                     op.ResolutionMap = currentContext.ToDictionary(k => k.Key, v => v.Value.IsHighResolution, StringComparer.OrdinalIgnoreCase);
                     op.NotifyResolutionChanged();
+
+                    // WPF ComboBox の選択解除イベントによる予期せぬ空文字上書きを多層防御で復元
+                    if (!string.IsNullOrEmpty(savedTarget) && string.IsNullOrEmpty(op.TargetStructure))
+                    {
+                        op.TargetStructure = savedTarget;
+                    }
+                    if (stepVm != null)
+                    {
+                        if (!string.IsNullOrEmpty(savedOrig) && string.IsNullOrEmpty(stepVm.OrigStructure))
+                        {
+                            stepVm.OrigStructure = savedOrig;
+                        }
+                        if (!string.IsNullOrEmpty(savedStrA) && string.IsNullOrEmpty(stepVm.StructureA))
+                        {
+                            stepVm.StructureA = savedStrA;
+                        }
+                        if (!string.IsNullOrEmpty(savedStrB) && string.IsNullOrEmpty(stepVm.StructureB))
+                        {
+                            stepVm.StructureB = savedStrB;
+                        }
+                    }
 
                     // ステップ i による輪郭の追加・変更・削除をシミュレート
                     ApplyStepToContext(op, currentContext);
@@ -318,10 +363,47 @@ namespace AutoStructure.ViewModels
             var sourceList = source.ToList();
             if (target.SequenceEqual(sourceList, StringComparer.OrdinalIgnoreCase)) return;
 
-            target.Clear();
-            foreach (var item in sourceList)
+            // 存在しなくなったものを末尾から削除
+            for (int i = target.Count - 1; i >= 0; i--)
             {
-                target.Add(item);
+                if (!sourceList.Contains(target[i], StringComparer.OrdinalIgnoreCase))
+                {
+                    target.RemoveAt(i);
+                }
+            }
+
+            // 新規追加および順序合わせ
+            for (int sIdx = 0; sIdx < sourceList.Count; sIdx++)
+            {
+                var sItem = sourceList[sIdx];
+                int existingIdx = -1;
+                for (int t = 0; t < target.Count; t++)
+                {
+                    if (string.Equals(target[t], sItem, StringComparison.OrdinalIgnoreCase))
+                    {
+                        existingIdx = t;
+                        break;
+                    }
+                }
+
+                if (existingIdx >= 0)
+                {
+                    if (existingIdx != sIdx && sIdx < target.Count)
+                    {
+                        target.Move(existingIdx, sIdx);
+                    }
+                }
+                else
+                {
+                    if (sIdx < target.Count)
+                    {
+                        target.Insert(sIdx, sItem);
+                    }
+                    else
+                    {
+                        target.Add(sItem);
+                    }
+                }
             }
         }
 
@@ -329,16 +411,46 @@ namespace AutoStructure.ViewModels
         {
             if (target == null) return;
             var sourceList = source.ToList();
-            if (target.Count == sourceList.Count &&
-                target.Zip(sourceList, (t, s) => t.Id == s.Id && t.IsHighResolution == s.IsHighResolution && t.IsNew == s.IsNew).All(x => x))
+
+            // 1. 存在しなくなった項目を末尾から削除（ComboBoxの選択中要素を極力維持）
+            for (int i = target.Count - 1; i >= 0; i--)
             {
-                return;
+                if (!sourceList.Any(s => string.Equals(s.Id, target[i].Id, StringComparison.OrdinalIgnoreCase)))
+                {
+                    target.RemoveAt(i);
+                }
             }
 
-            target.Clear();
-            foreach (var item in sourceList)
+            // 2. 既存項目はインスタンスを再利用してプロパティのみ更新、新規項目は追加
+            for (int sIdx = 0; sIdx < sourceList.Count; sIdx++)
             {
-                target.Add(new StructureInfo(item.Id, item.IsHighResolution, item.DicomType, item.IsNew));
+                var sItem = sourceList[sIdx];
+                var existing = target.FirstOrDefault(t => string.Equals(t.Id, sItem.Id, StringComparison.OrdinalIgnoreCase));
+                if (existing != null)
+                {
+                    // インスタンスを維持したままプロパティのみ更新（ComboBox の選択解除を防止）
+                    existing.IsHighResolution = sItem.IsHighResolution;
+                    existing.DicomType = sItem.DicomType;
+                    existing.IsNew = sItem.IsNew;
+
+                    int currentIdx = target.IndexOf(existing);
+                    if (currentIdx != sIdx && sIdx < target.Count)
+                    {
+                        target.Move(currentIdx, sIdx);
+                    }
+                }
+                else
+                {
+                    var newItem = new StructureInfo(sItem.Id, sItem.IsHighResolution, sItem.DicomType, sItem.IsNew);
+                    if (sIdx < target.Count)
+                    {
+                        target.Insert(sIdx, newItem);
+                    }
+                    else
+                    {
+                        target.Add(newItem);
+                    }
+                }
             }
         }
 

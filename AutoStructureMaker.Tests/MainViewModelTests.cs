@@ -281,5 +281,138 @@ namespace AutoStructureMaker.Tests
             Assert.IsFalse(_vm.Operations[0].AvailableStructures.Contains("ContourA"));
             Assert.IsTrue(_vm.Operations[1].AvailableStructures.Contains("ContourB"));
         }
+
+        [TestMethod]
+        public void SyncStructureInfos_PreservesInstanceReferences_ForExistingItems()
+        {
+            // Arrange
+            _vm.SetBaseStructures(new[]
+            {
+                new AutoStructure.Common.StructureInfo("CTV", false, "CTV", isNew: false),
+                new AutoStructure.Common.StructureInfo("PTV", false, "PTV", isNew: true)
+            });
+
+            _vm.AddStepCommand.Execute(OperationCategory.Margin);
+            var marginOp = _vm.Operations[0] as OperationStepViewModel;
+            Assert.IsNotNull(marginOp);
+
+            var originalCtvInstance = marginOp.AvailableStructureInfos.FirstOrDefault(x => x.Id == "CTV");
+            Assert.IsNotNull(originalCtvInstance);
+
+            // Act: 実行後の同期（PTV が実在輪郭になり、新しい輪郭 Other が追加される）
+            _vm.SetBaseStructures(new[]
+            {
+                new AutoStructure.Common.StructureInfo("CTV", false, "CTV", isNew: false),
+                new AutoStructure.Common.StructureInfo("Other", false, "CONTROL", isNew: false),
+                new AutoStructure.Common.StructureInfo("PTV", false, "PTV", isNew: false)
+            });
+
+            // Assert: 既存の CTV のインスタンス参照が維持されていること（ComboBox の選択解除を防止）
+            var updatedCtvInstance = marginOp.AvailableStructureInfos.FirstOrDefault(x => x.Id == "CTV");
+            Assert.AreSame(originalCtvInstance, updatedCtvInstance, "Existing StructureInfo instance must be preserved across syncs to avoid ComboBox unselection.");
+            Assert.AreEqual(3, marginOp.AvailableStructureInfos.Count);
+        }
+
+        [TestMethod]
+        public void RefreshStepStructureContexts_PreservesStepInputs_WhenContextUpdatedWithNewStructures()
+        {
+            // Arrange: 臨床での典型的マージン構成
+            _vm.SetBaseStructures(new[]
+            {
+                new AutoStructure.Common.StructureInfo("CTV", false, "CTV", isNew: false)
+            });
+
+            _vm.AddStepCommand.Execute(OperationCategory.AddStructure);
+            _vm.AddStepCommand.Execute(OperationCategory.Margin);
+            _vm.AddStepCommand.Execute(OperationCategory.AddStructure);
+
+            _vm.Operations[0].TargetStructure = "PTV";
+            var marginOp = _vm.Operations[1] as OperationStepViewModel;
+            Assert.IsNotNull(marginOp);
+            marginOp.TargetStructure = "PTV";
+            marginOp.OrigStructure = "CTV";
+            _vm.Operations[2].TargetStructure = "Other";
+
+            _vm.RefreshStepStructureContexts();
+
+            // Act: 実行完了後の同期（StructureSet に実際に PTV と Other が登録された状態）
+            _vm.SetBaseStructures(new[]
+            {
+                new AutoStructure.Common.StructureInfo("CTV", false, "CTV", isNew: false),
+                new AutoStructure.Common.StructureInfo("Other", false, "CONTROL", isNew: false),
+                new AutoStructure.Common.StructureInfo("PTV", false, "PTV", isNew: false)
+            });
+
+            // Assert: マージン処理の TargetStructure および OrigStructure が保持されていること
+            Assert.AreEqual("PTV", marginOp.TargetStructure, "TargetStructure must not be cleared after context sync.");
+            Assert.AreEqual("CTV", marginOp.OrigStructure, "OrigStructure must not be cleared after context sync.");
+        }
+
+        [TestMethod]
+        public void WPF_ComboBoxBinding_TargetAndOrigStructure_PreservedAfterContextSync()
+        {
+            // Arrange: WPF ComboBox と ViewModel を結合した実際の UI 動作検証
+            _vm.SetBaseStructures(new[]
+            {
+                new AutoStructure.Common.StructureInfo("CTV", false, "CTV", isNew: false)
+            });
+
+            _vm.AddStepCommand.Execute(OperationCategory.AddStructure);
+            _vm.AddStepCommand.Execute(OperationCategory.Margin);
+            _vm.AddStepCommand.Execute(OperationCategory.AddStructure);
+
+            _vm.Operations[0].TargetStructure = "PTV";
+            var marginOp = _vm.Operations[1] as OperationStepViewModel;
+            Assert.IsNotNull(marginOp);
+            marginOp.TargetStructure = "PTV";
+            marginOp.OrigStructure = "CTV";
+            _vm.Operations[2].TargetStructure = "Other";
+
+            _vm.RefreshStepStructureContexts();
+
+            // ComboBox へのバインディング
+            var cbTarget = new System.Windows.Controls.ComboBox
+            {
+                IsEditable = true,
+                ItemsSource = marginOp.AvailableStructureInfos
+            };
+            System.Windows.Controls.TextSearch.SetTextPath(cbTarget, "Id");
+            cbTarget.SetBinding(System.Windows.Controls.ComboBox.TextProperty, new System.Windows.Data.Binding("TargetStructure")
+            {
+                Source = marginOp,
+                Mode = System.Windows.Data.BindingMode.TwoWay,
+                UpdateSourceTrigger = System.Windows.Data.UpdateSourceTrigger.PropertyChanged
+            });
+
+            var cbOrig = new System.Windows.Controls.ComboBox
+            {
+                IsEditable = true,
+                ItemsSource = marginOp.AvailableStructureInfos
+            };
+            System.Windows.Controls.TextSearch.SetTextPath(cbOrig, "Id");
+            cbOrig.SetBinding(System.Windows.Controls.ComboBox.TextProperty, new System.Windows.Data.Binding("OrigStructure")
+            {
+                Source = marginOp,
+                Mode = System.Windows.Data.BindingMode.TwoWay,
+                UpdateSourceTrigger = System.Windows.Data.UpdateSourceTrigger.PropertyChanged
+            });
+
+            Assert.AreEqual("PTV", cbTarget.Text);
+            Assert.AreEqual("CTV", cbOrig.Text);
+
+            // Act: 実行完了後の同期（StructureSet の輪郭一覧更新）
+            _vm.SetBaseStructures(new[]
+            {
+                new AutoStructure.Common.StructureInfo("CTV", false, "CTV", isNew: false),
+                new AutoStructure.Common.StructureInfo("Other", false, "CONTROL", isNew: false),
+                new AutoStructure.Common.StructureInfo("PTV", false, "PTV", isNew: false)
+            });
+
+            // Assert: ComboBox 表示テキストおよび ViewModel の値が共に消失せず保持されていること
+            Assert.AreEqual("PTV", marginOp.TargetStructure, "ViewModel TargetStructure must be preserved.");
+            Assert.AreEqual("CTV", marginOp.OrigStructure, "ViewModel OrigStructure must be preserved.");
+            Assert.AreEqual("PTV", cbTarget.Text, "ComboBox Target text must be preserved.");
+            Assert.AreEqual("CTV", cbOrig.Text, "ComboBox Orig text must be preserved.");
+        }
     }
 }

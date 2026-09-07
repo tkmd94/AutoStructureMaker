@@ -149,8 +149,9 @@ AutoStructureMaker/
   - `OperationCategory` プロパティ（Add, Delete, Boolean, Margin, HiRes）の変更に応じて、カード内の入力エリアの可視性（Visibility）およびバッジ色を動的に切り替えます。
   - 等方 / 異方マージンの双方向同期プロパティ（`MarginUniformText` $\leftrightarrow$ `X1`, `X2`, `Y1`, `Y2`, `Z1`, `Z2`）を提供。
 
-### 4.3 先行ステップ輪郭伝播パイプライン
-ユーザーがステップを編集するたびに、`MainViewModel.RefreshStepStructureContexts()` がバックグラウンドで高速実行されます：
+### 4.3 先行ステップ輪郭伝播パイプライン & スマート差分同期
+ユーザーがステップを編集した際や、実行完了後の StructureSet 再同期時に、`MainViewModel.RefreshStepStructureContexts()` が実行されます。
+WPF の `ComboBox(IsEditable=True)` においてコレクションの全破棄（`Clear()`）を行うと選択解除・テキスト消失が発生するため、**スマート・インプレース同期（Smart In-Place Sync）** と **多層入力値保護ガード（Defense-in-Depth）** を採用しています：
 
 ```csharp
 public void RefreshStepStructureContexts()
@@ -171,11 +172,27 @@ public void RefreshStepStructureContexts()
         {
             var op = Operations[i];
 
-            // ステップ i 開始時点の利用可能輪郭をインプレース同期
+            // 入力値を保護・退避
+            string savedTarget = op.TargetStructure;
+            var stepVm = op as OperationStepViewModel;
+            string savedOrig = stepVm?.OrigStructure;
+            string savedStrA = stepVm?.StructureA;
+            string savedStrB = stepVm?.StructureB;
+
+            // 既存インスタンス参照を維持したスマート差分同期（ComboBox の選択解除を防止）
             SyncCollection(op.AvailableStructures, currentContext.Keys);
             SyncStructureInfos(op.AvailableStructureInfos, currentContext.Values);
             op.ResolutionMap = currentContext.ToDictionary(k => k.Key, v => v.Value.IsHighResolution, StringComparer.OrdinalIgnoreCase);
             op.NotifyResolutionChanged();
+
+            // 多層防御ガード：同期副作用による空文字上書きを自動復元
+            if (!string.IsNullOrEmpty(savedTarget) && string.IsNullOrEmpty(op.TargetStructure)) op.TargetStructure = savedTarget;
+            if (stepVm != null)
+            {
+                if (!string.IsNullOrEmpty(savedOrig) && string.IsNullOrEmpty(stepVm.OrigStructure)) stepVm.OrigStructure = savedOrig;
+                if (!string.IsNullOrEmpty(savedStrA) && string.IsNullOrEmpty(stepVm.StructureA)) stepVm.StructureA = savedStrA;
+                if (!string.IsNullOrEmpty(savedStrB) && string.IsNullOrEmpty(stepVm.StructureB)) stepVm.StructureB = savedStrB;
+            }
 
             // ステップ i の操作結果を currentContext に反映して次ステップへ引き継ぐ
             ApplyStepToContext(op, currentContext);
@@ -184,6 +201,9 @@ public void RefreshStepStructureContexts()
     finally { _isRefreshingContexts = false; }
 }
 ```
+
+- **`StructureInfo` の `INotifyPropertyChanged` 対応**: 既存インスタンスを再利用したインプレース更新時にも、解像度バッジ（`[HIGH]` / `[STD]` / `[NEW]`）が UI へ即座に反映されます。
+- **インスタンス参照の維持**: ComboBox が選択中の `StructureInfo` 参照を失わないため、マージン処理や論理演算処理の実行後も入力項目が空欄になりません。
 
 ### 4.4 ⚡ Boolean Auto-Align（解像度自動整合）エンジン
 `OperationStepViewModel.ExecuteBoolean()` は、解像度タイプが異なる輪郭同士の Boolean 処理において、以下の安全な昇格・クリーンアップ機構を提供します：

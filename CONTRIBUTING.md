@@ -87,9 +87,9 @@ test.bat
 - **null ガード**:
   ESAPI の戻り値（`structureSet.Structures.FirstOrDefault(...)` など）は常に `null` の可能性を考慮し、処理前に必ず null チェックを行ってください。
 
-### 4.2 MVVM パターンとインプレース同期
+### 4.2 MVVM パターンとスマート・インプレース同期
 - コレクションの更新時、`new ObservableCollection<...>` で参照ごと再代入すると、WPF のバインディングが切断されたりちらつきの原因となります。
-- `SyncCollection()` や `SyncStructureInfos()` を用いて、既存のコレクションインスタンスを維持したまま要素をインプレース同期（Clear & Add）してください。
+- コレクションの要素同期には `SyncCollection()` や `SyncStructureInfos()` を用い、コレクションおよび同一輪郭のインスタンス参照を維持したままプロパティのみ更新（スマート差分同期）してください（※ `Clear()` すると WPF ComboBox の選択解除・テキスト消失が発生するため禁止です）。
 - `IsEnabled` の切り替えやステップ複製（`Duplicate`）時も、`RefreshStepStructureContexts()` が自動発動して輪郭コンテキストが正しく同期される設計を維持してください。
 
 ### 4.3 ESAPI 一時作業構造体のクリーンアップ保証

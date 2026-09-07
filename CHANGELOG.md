@@ -5,6 +5,17 @@ AutoStructureMaker のすべての重要な変更は、本ファイルに記録�
 
 ---
 
+## [2.0.1] - 2026-09-07
+
+### 🐛 修正 (Fixed)
+- **輪郭再同期に伴う ComboBox 入力値（Target / Margin元 / 論理演算元）消失の根絶**:
+  - `ExecuteRun` 後の輪郭同期処理において、`ObservableCollection<StructureInfo>` の全破棄・全再生成（`Clear()`）を廃止し、既存インスタンス参照を維持してプロパティのみ更新するスマート・インプレース同期（Smart In-Place Sync）へ刷新。
+  - `StructureInfo` に `INotifyPropertyChanged` を実装し、解像度や新規フラグの変更が UI バッジに即座に通知されるよう改善。
+  - 同期処理前後の多層入力値保護ガード（Defense-in-Depth）を導入し、マージン処理等の実行後に `Target Structure` や `Create Margin From` が空欄にリセットされる不具合を完全修正。
+  - UI ComboBox 結合単体テストを含む回帰防止テストを追加。
+
+---
+
 ## [2.0.0] - 2026-09-06 (Major Remake)
 
 ### 🌟 追加 (Added)
