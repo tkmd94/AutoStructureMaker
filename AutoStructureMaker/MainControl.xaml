@@ -13,7 +13,7 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/AutoStructureMaker_v2.0.3.esapi;component/Theme.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/AutoStructureMaker_v2.0.4.esapi;component/Theme.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <DataTemplate DataType="{x:Type vm:OperationItemViewModel}">

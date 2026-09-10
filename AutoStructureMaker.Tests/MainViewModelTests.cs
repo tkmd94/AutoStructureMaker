@@ -419,6 +419,185 @@ namespace AutoStructureMaker.Tests
         }
 
         [TestMethod]
+        public void DuplicateStepCommand_BooleanStep_WpfComboBoxSelection_PreservesValues()
+        {
+            // Arrange: PTV is created in Step 1 (not in base structures)
+            _vm.SetBaseStructures(new[]
+            {
+                new AutoStructure.Common.StructureInfo("Bladder", false, "ORGAN", isNew: false),
+                new AutoStructure.Common.StructureInfo("Rectum", false, "ORGAN", isNew: false)
+            });
+
+            _vm.AddStepCommand.Execute(OperationCategory.AddStructure);
+            _vm.Operations[0].TargetStructure = "PTV";
+
+            _vm.AddStepCommand.Execute(OperationCategory.BooleanOperation);
+            var boolOp = _vm.Operations[1] as OperationStepViewModel;
+            Assert.IsNotNull(boolOp);
+            boolOp.TargetStructure = "Bladder_sub";
+            boolOp.StructureA = "Bladder";
+            boolOp.StructureB = "PTV";
+            boolOp.BoolOpType = AutoStructure.BoolOpeType.SUB;
+
+            _vm.RefreshStepStructureContexts();
+
+            // Act 1: boolOp の ComboBox を作成（実際のUI表示状態）
+            var cb1_Target = new System.Windows.Controls.ComboBox { IsEditable = true, ItemsSource = boolOp.AvailableStructureInfos };
+            System.Windows.Controls.TextSearch.SetTextPath(cb1_Target, "Id");
+            cb1_Target.SetBinding(System.Windows.Controls.ComboBox.TextProperty, new System.Windows.Data.Binding("TargetStructure")
+            {
+                Source = boolOp, Mode = System.Windows.Data.BindingMode.TwoWay, UpdateSourceTrigger = System.Windows.Data.UpdateSourceTrigger.PropertyChanged
+            });
+            var cb1_A = new System.Windows.Controls.ComboBox { IsEditable = true, ItemsSource = boolOp.AvailableStructureInfos };
+            System.Windows.Controls.TextSearch.SetTextPath(cb1_A, "Id");
+            cb1_A.SetBinding(System.Windows.Controls.ComboBox.TextProperty, new System.Windows.Data.Binding("StructureA")
+            {
+                Source = boolOp, Mode = System.Windows.Data.BindingMode.TwoWay, UpdateSourceTrigger = System.Windows.Data.UpdateSourceTrigger.PropertyChanged
+            });
+            var cb1_B = new System.Windows.Controls.ComboBox { IsEditable = true, ItemsSource = boolOp.AvailableStructureInfos };
+            System.Windows.Controls.TextSearch.SetTextPath(cb1_B, "Id");
+            cb1_B.SetBinding(System.Windows.Controls.ComboBox.TextProperty, new System.Windows.Data.Binding("StructureB")
+            {
+                Source = boolOp, Mode = System.Windows.Data.BindingMode.TwoWay, UpdateSourceTrigger = System.Windows.Data.UpdateSourceTrigger.PropertyChanged
+            });
+
+            // Act 2: 複製を実行
+            _vm.DuplicateStepCommand.Execute(boolOp);
+            Assert.AreEqual(3, _vm.Operations.Count);
+
+            var clonedOp = _vm.Operations[2] as OperationStepViewModel;
+            Assert.IsNotNull(clonedOp);
+
+            // コレクションインスタンスが独立していること（共有されていないこと）を検証
+            Assert.AreNotSame(boolOp.AvailableStructureInfos, clonedOp.AvailableStructureInfos, "Cloned step must have independent AvailableStructureInfos.");
+            Assert.AreNotSame(boolOp.AvailableStructures, clonedOp.AvailableStructures, "Cloned step must have independent AvailableStructures.");
+            Assert.AreNotSame(_vm.AvailableStructureInfos, clonedOp.AvailableStructureInfos, "Cloned step must not share ViewModel master collection.");
+
+            // clonedOp の ComboBox を作成（実際のUI表示状態）
+            var cbTarget = new System.Windows.Controls.ComboBox
+            {
+                IsEditable = true,
+                ItemsSource = clonedOp.AvailableStructureInfos
+            };
+            System.Windows.Controls.TextSearch.SetTextPath(cbTarget, "Id");
+            cbTarget.SetBinding(System.Windows.Controls.ComboBox.TextProperty, new System.Windows.Data.Binding("TargetStructure")
+            {
+                Source = clonedOp,
+                Mode = System.Windows.Data.BindingMode.TwoWay,
+                UpdateSourceTrigger = System.Windows.Data.UpdateSourceTrigger.PropertyChanged
+            });
+
+            var cbA = new System.Windows.Controls.ComboBox
+            {
+                IsEditable = true,
+                ItemsSource = clonedOp.AvailableStructureInfos
+            };
+            System.Windows.Controls.TextSearch.SetTextPath(cbA, "Id");
+            cbA.SetBinding(System.Windows.Controls.ComboBox.TextProperty, new System.Windows.Data.Binding("StructureA")
+            {
+                Source = clonedOp,
+                Mode = System.Windows.Data.BindingMode.TwoWay,
+                UpdateSourceTrigger = System.Windows.Data.UpdateSourceTrigger.PropertyChanged
+            });
+
+            var cbB = new System.Windows.Controls.ComboBox
+            {
+                IsEditable = true,
+                ItemsSource = clonedOp.AvailableStructureInfos
+            };
+            System.Windows.Controls.TextSearch.SetTextPath(cbB, "Id");
+            cbB.SetBinding(System.Windows.Controls.ComboBox.TextProperty, new System.Windows.Data.Binding("StructureB")
+            {
+                Source = clonedOp,
+                Mode = System.Windows.Data.BindingMode.TwoWay,
+                UpdateSourceTrigger = System.Windows.Data.UpdateSourceTrigger.PropertyChanged
+            });
+
+            // 複製直後の値を確認
+            Assert.AreEqual("Bladder_sub", clonedOp.TargetStructure, "Cloned TargetStructure immediately after duplicate");
+            Assert.AreEqual("Bladder", clonedOp.StructureA, "Cloned StructureA immediately after duplicate");
+            Assert.AreEqual("PTV", clonedOp.StructureB, "Cloned StructureB immediately after duplicate");
+
+            // Act 3: 複製したモジュールで StructureA をドロップダウンから選択 (Rectum を選択)
+            var rectumItem = clonedOp.AvailableStructureInfos.FirstOrDefault(x => x.Id == "Rectum");
+            Assert.IsNotNull(rectumItem, "Rectum must exist in AvailableStructureInfos");
+            cbA.SelectedItem = rectumItem;
+
+            // Assert: 選択変更後も全フィールドが保持されていること
+            Assert.AreEqual("Rectum", clonedOp.StructureA, "StructureA should be Rectum");
+            Assert.AreEqual("PTV", clonedOp.StructureB, "StructureB should still be PTV");
+            Assert.AreEqual("Bladder_sub", clonedOp.TargetStructure, "TargetStructure should still be Bladder_sub");
+            Assert.IsFalse(string.IsNullOrEmpty(clonedOp.StructureA), "StructureA must not be empty");
+            Assert.IsFalse(string.IsNullOrEmpty(clonedOp.StructureB), "StructureB must not be empty");
+            Assert.IsFalse(string.IsNullOrEmpty(clonedOp.TargetStructure), "TargetStructure must not be empty");
+
+            // 元のモジュール (boolOp) の値も一切影響を受けていないこと
+            Assert.AreEqual("Bladder_sub", boolOp.TargetStructure);
+            Assert.AreEqual("Bladder", boolOp.StructureA);
+            Assert.AreEqual("PTV", boolOp.StructureB);
+        }
+
+        [TestMethod]
+        public void LoadTemplate_AndDuplicate_CollectionsAreIndependentAndPreserved()
+        {
+            // Arrange: テンプレート作成
+            var template = new AutoStructure.Common.StructureTemplate
+            {
+                ProtocolName = "Test_Protocol",
+                Steps = new List<AutoStructure.Common.TemplateStep>
+                {
+                    new AutoStructure.Common.TemplateStep { StepNumber = 1, Type = "Add", TargetStructure = "CTV", DicomType = "CTV" },
+                    new AutoStructure.Common.TemplateStep { StepNumber = 2, Type = "Boolean", TargetStructure = "PTV_Opt", StructureA = "CTV", StructureB = "Bladder", BooleanOperation = "SUB" }
+                }
+            };
+            string tempFile = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"AutoStructure_Test_{System.Guid.NewGuid():N}.xml");
+            AutoStructure.Common.TemplateService.SaveTemplate(tempFile, template, asCsv: false);
+
+            try
+            {
+                var loaded = AutoStructure.Common.TemplateService.LoadTemplate(tempFile);
+                _vm.Operations.Clear();
+                foreach (var step in loaded.Steps)
+                {
+                    var op = OperationItemViewModel.FromTemplateStep(step, _vm.AvailableStructures, _vm.AvailableStructureInfos, _vm.StructureResolutionMap);
+                    _vm.Operations.Add(op);
+                }
+                _vm.RefreshStepStructureContexts();
+
+                // ロード直後の全ステップのコレクションが独立していることを確認
+                Assert.AreEqual(2, _vm.Operations.Count);
+                Assert.AreNotSame(_vm.Operations[0].AvailableStructureInfos, _vm.Operations[1].AvailableStructureInfos);
+
+                // Step 2 を複製
+                var boolOp = _vm.Operations[1] as OperationStepViewModel;
+                _vm.DuplicateStepCommand.Execute(boolOp);
+
+                Assert.AreEqual(3, _vm.Operations.Count);
+                var dupOp = _vm.Operations[2] as OperationStepViewModel;
+                Assert.IsNotNull(dupOp);
+
+                // 複製ステップも独立していること
+                Assert.AreNotSame(boolOp.AvailableStructureInfos, dupOp.AvailableStructureInfos);
+                Assert.AreEqual("PTV_Opt", dupOp.TargetStructure);
+                Assert.AreEqual("CTV", dupOp.StructureA);
+                Assert.AreEqual("Bladder", dupOp.StructureB);
+
+                // 値の変更
+                dupOp.StructureA = "Bladder";
+                Assert.AreEqual("Bladder", dupOp.StructureA);
+                Assert.AreEqual("Bladder", dupOp.StructureB);
+                Assert.AreEqual("PTV_Opt", dupOp.TargetStructure);
+            }
+            finally
+            {
+                if (System.IO.File.Exists(tempFile))
+                {
+                    System.IO.File.Delete(tempFile);
+                }
+            }
+        }
+
+        [TestMethod]
         public void OpenHelpCommand_CanExecute_AndEmbeddedManualResourceExists()
         {
             // Assert OpenHelpCommand is available and executable
@@ -510,6 +689,154 @@ namespace AutoStructureMaker.Tests
 
             Assert.AreEqual("Skip", op4.Status, "Step 4 should be Skip");
             Assert.IsTrue(op4.StatusToolTip.Contains("disabled") || op4.StatusToolTip.Contains("skipped"));
+        }
+
+        [TestMethod]
+        public void MoveUpCommand_MiddleItem_SwapsAndReNumbers()
+        {
+            _vm.AddStepCommand.Execute(OperationCategory.AddStructure);
+            _vm.AddStepCommand.Execute(OperationCategory.Margin);
+            _vm.AddStepCommand.Execute(OperationCategory.BooleanOperation);
+
+            _vm.Operations[0].TargetStructure = "Step1";
+            _vm.Operations[1].TargetStructure = "Step2";
+            _vm.Operations[2].TargetStructure = "Step3";
+
+            // Act: 2番目 (Step2) を MoveUp
+            _vm.MoveUpCommand.Execute(_vm.Operations[1]);
+
+            Assert.AreEqual("Step2", _vm.Operations[0].TargetStructure);
+            Assert.AreEqual("Step1", _vm.Operations[1].TargetStructure);
+            Assert.AreEqual("Step3", _vm.Operations[2].TargetStructure);
+            Assert.AreEqual(1, _vm.Operations[0].StepNumber);
+            Assert.AreEqual(2, _vm.Operations[1].StepNumber);
+            Assert.AreEqual(3, _vm.Operations[2].StepNumber);
+        }
+
+        [TestMethod]
+        public void MoveDownCommand_MiddleItem_SwapsAndReNumbers()
+        {
+            _vm.AddStepCommand.Execute(OperationCategory.AddStructure);
+            _vm.AddStepCommand.Execute(OperationCategory.Margin);
+            _vm.AddStepCommand.Execute(OperationCategory.BooleanOperation);
+
+            _vm.Operations[0].TargetStructure = "Step1";
+            _vm.Operations[1].TargetStructure = "Step2";
+            _vm.Operations[2].TargetStructure = "Step3";
+
+            // Act: 2番目 (Step2) を MoveDown
+            _vm.MoveDownCommand.Execute(_vm.Operations[1]);
+
+            Assert.AreEqual("Step1", _vm.Operations[0].TargetStructure);
+            Assert.AreEqual("Step3", _vm.Operations[1].TargetStructure);
+            Assert.AreEqual("Step2", _vm.Operations[2].TargetStructure);
+            Assert.AreEqual(1, _vm.Operations[0].StepNumber);
+            Assert.AreEqual(2, _vm.Operations[1].StepNumber);
+            Assert.AreEqual(3, _vm.Operations[2].StepNumber);
+        }
+
+        [TestMethod]
+        public void DuplicateStepCommand_MiddleItem_InsertsAtNextIndexAndPreservesOrder()
+        {
+            _vm.AddStepCommand.Execute(OperationCategory.AddStructure);
+            _vm.AddStepCommand.Execute(OperationCategory.Margin);
+            _vm.AddStepCommand.Execute(OperationCategory.BooleanOperation);
+
+            _vm.Operations[0].TargetStructure = "Step1";
+            _vm.Operations[1].TargetStructure = "Step2";
+            _vm.Operations[2].TargetStructure = "Step3";
+
+            // Act: Step 2 を複製
+            _vm.DuplicateStepCommand.Execute(_vm.Operations[1]);
+
+            Assert.AreEqual(4, _vm.Operations.Count);
+            Assert.AreEqual("Step1", _vm.Operations[0].TargetStructure);
+            Assert.AreEqual("Step2", _vm.Operations[1].TargetStructure);
+            Assert.AreEqual("Step2", _vm.Operations[2].TargetStructure); // 複製された要素
+            Assert.AreEqual("Step3", _vm.Operations[3].TargetStructure);
+            Assert.AreEqual(1, _vm.Operations[0].StepNumber);
+            Assert.AreEqual(2, _vm.Operations[1].StepNumber);
+            Assert.AreEqual(3, _vm.Operations[2].StepNumber);
+            Assert.AreEqual(4, _vm.Operations[3].StepNumber);
+        }
+
+        [TestMethod]
+        public void DuplicateStepCommand_DisabledStep_PreservesDisabledState()
+        {
+            _vm.AddStepCommand.Execute(OperationCategory.Margin);
+            var op = _vm.Operations[0];
+            op.TargetStructure = "PTV_Margin";
+            op.IsEnabled = false;
+
+            // Act: 複製を実行
+            _vm.DuplicateStepCommand.Execute(op);
+
+            Assert.AreEqual(2, _vm.Operations.Count);
+            Assert.IsFalse(_vm.Operations[0].IsEnabled);
+            Assert.IsFalse(_vm.Operations[1].IsEnabled);
+        }
+
+        [TestMethod]
+        public void DeleteCommand_RemovesLastItemUntilEmpty_SummaryUpdatesAccurately()
+        {
+            _vm.AddStepCommand.Execute(OperationCategory.AddStructure);
+            _vm.AddStepCommand.Execute(OperationCategory.Margin);
+
+            Assert.AreEqual(2, _vm.Operations.Count);
+            Assert.IsTrue(_vm.HasOperations);
+            Assert.AreEqual("2 steps configured", _vm.OperationsSummaryText);
+
+            // Act 1: 1回削除
+            _vm.DeleteCommand.Execute(null);
+            Assert.AreEqual(1, _vm.Operations.Count);
+            Assert.IsTrue(_vm.HasOperations);
+            Assert.AreEqual("1 step configured", _vm.OperationsSummaryText);
+
+            // Act 2: もう1回削除
+            _vm.DeleteCommand.Execute(null);
+            Assert.AreEqual(0, _vm.Operations.Count);
+            Assert.IsFalse(_vm.HasOperations);
+            Assert.AreEqual("0 steps configured", _vm.OperationsSummaryText);
+        }
+
+        [TestMethod]
+        public void RefreshStepStructureContexts_HighResPropagation_ThroughBooleanAndMargin()
+        {
+            _vm.SetBaseStructures(new[]
+            {
+                new StructureInfo("GTV_High", isHighResolution: true, dicomType: "GTV"),
+                new StructureInfo("Bladder_Std", isHighResolution: false, dicomType: "ORGAN")
+            });
+
+            // Step 1: Margin from GTV_High -> Result Target_Margin should be High-Res
+            _vm.AddStepCommand.Execute(OperationCategory.Margin);
+            var step1 = (OperationStepViewModel)_vm.Operations[0];
+            step1.TargetStructure = "Target_Margin";
+            step1.OrigStructure = "GTV_High";
+
+            // Step 2: Boolean SUB: Target_Margin (High) - Bladder_Std (Std) -> Result Target_Bool should be High-Res
+            _vm.AddStepCommand.Execute(OperationCategory.BooleanOperation);
+            var step2 = (OperationStepViewModel)_vm.Operations[1];
+            step2.TargetStructure = "Target_Bool";
+            step2.StructureA = "Target_Margin";
+            step2.StructureB = "Bladder_Std";
+            step2.BoolOpType = BoolOpeType.SUB;
+
+            // Step 3: AddStructure (just to check context of step 3)
+            _vm.AddStepCommand.Execute(OperationCategory.AddStructure);
+            var step3 = (OperationStepViewModel)_vm.Operations[2];
+
+            _vm.RefreshStepStructureContexts();
+
+            // Assert: Step 3's available structures has Target_Margin (HIGH) and Target_Bool (HIGH)
+            var marginInfo = step3.AvailableStructureInfos.FirstOrDefault(x => x.Id == "Target_Margin");
+            var boolInfo = step3.AvailableStructureInfos.FirstOrDefault(x => x.Id == "Target_Bool");
+
+            Assert.IsNotNull(marginInfo, "Target_Margin should be in step 3 context");
+            Assert.IsTrue(marginInfo.IsHighResolution, "Target_Margin derived from GTV_High should be High-Res");
+
+            Assert.IsNotNull(boolInfo, "Target_Bool should be in step 3 context");
+            Assert.IsTrue(boolInfo.IsHighResolution, "Target_Bool combining High and Std should be High-Res");
         }
     }
 }

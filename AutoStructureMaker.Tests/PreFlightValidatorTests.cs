@@ -269,5 +269,147 @@ namespace AutoStructureMaker.Tests
             Assert.IsFalse(result.IsValid);
             Assert.IsTrue(result.Errors.Exists(e => e.Message.Contains("cannot be empty")));
         }
+
+        [TestMethod]
+        public void Validate_WhenBooleanStructureA_IsEmpty_GeneratesError()
+        {
+            var ops = new List<OperationItemViewModel>
+            {
+                new OperationStepViewModel
+                {
+                    StepNumber = 1,
+                    Category = OperationCategory.BooleanOperation,
+                    TargetStructure = "Target_Valid",
+                    StructureA = "",
+                    StructureB = "CTV",
+                    BoolOpType = BoolOpeType.SUB
+                }
+            };
+
+            var result = PreFlightValidator.Validate(ops, new List<string> { "Target_Valid", "CTV" });
+            Assert.IsFalse(result.IsValid);
+            Assert.IsTrue(result.Errors.Exists(e => e.Message.Contains("Structure A must be specified")));
+        }
+
+        [TestMethod]
+        public void Validate_WhenBooleanStructureB_IsEmpty_GeneratesError()
+        {
+            var ops = new List<OperationItemViewModel>
+            {
+                new OperationStepViewModel
+                {
+                    StepNumber = 1,
+                    Category = OperationCategory.BooleanOperation,
+                    TargetStructure = "Target_Valid",
+                    StructureA = "CTV",
+                    StructureB = "   ",
+                    BoolOpType = BoolOpeType.SUB
+                }
+            };
+
+            var result = PreFlightValidator.Validate(ops, new List<string> { "Target_Valid", "CTV" });
+            Assert.IsFalse(result.IsValid);
+            Assert.IsTrue(result.Errors.Exists(e => e.Message.Contains("Structure B must be specified")));
+        }
+
+        [TestMethod]
+        public void Validate_WhenConvertHighResTarget_DoesNotExist_GeneratesError()
+        {
+            var ops = new List<OperationItemViewModel>
+            {
+                new OperationStepViewModel
+                {
+                    StepNumber = 1,
+                    Category = OperationCategory.ConvertHighRes,
+                    TargetStructure = "Ghost_Target"
+                }
+            };
+
+            var result = PreFlightValidator.Validate(ops, new List<string> { "Real_Structure" });
+            Assert.IsFalse(result.IsValid);
+            Assert.IsTrue(result.Errors.Exists(e => e.Message.Contains("Target structure 'Ghost_Target' to convert does not exist")));
+        }
+
+        [TestMethod]
+        public void Validate_WhenAddStructureAlreadyCreatedInPipeline_GeneratesError()
+        {
+            var ops = new List<OperationItemViewModel>
+            {
+                new OperationStepViewModel
+                {
+                    StepNumber = 1,
+                    Category = OperationCategory.AddStructure,
+                    TargetStructure = "Duplicate_Pipeline"
+                },
+                new OperationStepViewModel
+                {
+                    StepNumber = 2,
+                    Category = OperationCategory.AddStructure,
+                    TargetStructure = "Duplicate_Pipeline"
+                }
+            };
+
+            var result = PreFlightValidator.Validate(ops, new List<string>());
+            Assert.IsFalse(result.IsValid);
+            Assert.IsTrue(result.Errors.Exists(e => e.Message.Contains("is already created in an earlier step")));
+        }
+
+        [TestMethod]
+        public void Validate_WhenDeletingNonExistentStructure_GeneratesError()
+        {
+            var ops = new List<OperationItemViewModel>
+            {
+                new OperationStepViewModel
+                {
+                    StepNumber = 1,
+                    Category = OperationCategory.DeleteStructure,
+                    TargetStructure = "Ghost_Structure"
+                }
+            };
+
+            var result = PreFlightValidator.Validate(ops, new List<string> { "Other_Structure" });
+            Assert.IsFalse(result.IsValid);
+            Assert.IsTrue(result.Errors.Exists(e => e.Message.Contains("to delete does not exist")));
+        }
+
+        [TestMethod]
+        public void Validate_AllBooleanOperations_AND_OR_XOR_ValidateProperly()
+        {
+            var ops = new List<OperationItemViewModel>
+            {
+                new OperationStepViewModel
+                {
+                    StepNumber = 1,
+                    Category = OperationCategory.BooleanOperation,
+                    TargetStructure = "Target_And",
+                    StructureA = "CTV",
+                    StructureB = "Bladder",
+                    BoolOpType = BoolOpeType.AND
+                },
+                new OperationStepViewModel
+                {
+                    StepNumber = 2,
+                    Category = OperationCategory.BooleanOperation,
+                    TargetStructure = "Target_Or",
+                    StructureA = "CTV",
+                    StructureB = "Bladder",
+                    BoolOpType = BoolOpeType.OR
+                },
+                new OperationStepViewModel
+                {
+                    StepNumber = 3,
+                    Category = OperationCategory.BooleanOperation,
+                    TargetStructure = "Target_Xor",
+                    StructureA = "CTV",
+                    StructureB = "Bladder",
+                    BoolOpType = BoolOpeType.XOR
+                }
+            };
+
+            var existing = new List<string> { "CTV", "Bladder", "Target_And", "Target_Or", "Target_Xor" };
+            var result = PreFlightValidator.Validate(ops, existing);
+            Assert.IsTrue(result.IsValid, result.SummaryText);
+            Assert.AreEqual(0, result.Errors.Count);
+        }
     }
 }

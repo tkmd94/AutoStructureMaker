@@ -561,5 +561,177 @@ namespace AutoStructureMaker.Tests
             Assert.AreEqual("7", vm.Y2Text);
             Assert.AreEqual("7", vm.X1Text);
         }
+
+        [TestMethod]
+        public void ToCsvLine_AllCategories_OutputsCorrectFormat()
+        {
+            // 1. Add
+            var addVm = new OperationStepViewModel
+            {
+                Category = OperationCategory.AddStructure,
+                TargetStructure = "PTV_New",
+                DicomType = DicomType.PTV
+            };
+            Assert.AreEqual("AddDelControl,Add,PTV_New,PTV", addVm.ToCsvLine());
+
+            // 2. Del
+            var delVm = new OperationStepViewModel
+            {
+                Category = OperationCategory.DeleteStructure,
+                TargetStructure = "Temp_Ring"
+            };
+            Assert.AreEqual("AddDelControl,Del,Temp_Ring", delVm.ToCsvLine());
+
+            // 3. Boolean (All 4 operations)
+            var boolSub = new OperationStepViewModel
+            {
+                Category = OperationCategory.BooleanOperation,
+                TargetStructure = "Target_Sub",
+                StructureA = "CTV",
+                StructureB = "Bladder",
+                BoolOpType = BoolOpeType.SUB
+            };
+            Assert.AreEqual("BoolOpControl,SUB,Target_Sub,CTV,Bladder", boolSub.ToCsvLine());
+
+            var boolAnd = new OperationStepViewModel
+            {
+                Category = OperationCategory.BooleanOperation,
+                TargetStructure = "Target_And",
+                StructureA = "CTV",
+                StructureB = "Bladder",
+                BoolOpType = BoolOpeType.AND
+            };
+            Assert.AreEqual("BoolOpControl,AND,Target_And,CTV,Bladder", boolAnd.ToCsvLine());
+
+            var boolOr = new OperationStepViewModel
+            {
+                Category = OperationCategory.BooleanOperation,
+                TargetStructure = "Target_Or",
+                StructureA = "CTV",
+                StructureB = "Bladder",
+                BoolOpType = BoolOpeType.OR
+            };
+            Assert.AreEqual("BoolOpControl,OR,Target_Or,CTV,Bladder", boolOr.ToCsvLine());
+
+            var boolXor = new OperationStepViewModel
+            {
+                Category = OperationCategory.BooleanOperation,
+                TargetStructure = "Target_Xor",
+                StructureA = "CTV",
+                StructureB = "Bladder",
+                BoolOpType = BoolOpeType.XOR
+            };
+            Assert.AreEqual("BoolOpControl,XOR,Target_Xor,CTV,Bladder", boolXor.ToCsvLine());
+
+            // 4. Margin
+            var marginVm = new OperationStepViewModel
+            {
+                Category = OperationCategory.Margin,
+                TargetStructure = "PTV_Margin",
+                OrigStructure = "CTV",
+                MarginGeometry = GeoType.Inner,
+                X1Text = "5",
+                X2Text = "6",
+                Y1Text = "7",
+                Y2Text = "8",
+                Z1Text = "9",
+                Z2Text = "10"
+            };
+            Assert.AreEqual("AddMarginControl,Asymmetry,PTV_Margin,CTV,Inner,5,6,7,8,9,10", marginVm.ToCsvLine());
+
+            // 5. ConvertHighRes
+            var hiResVm = new OperationStepViewModel
+            {
+                Category = OperationCategory.ConvertHighRes,
+                TargetStructure = "GTV_Opt"
+            };
+            Assert.AreEqual("ConvertHighResControl,HiRes,GTV_Opt", hiResVm.ToCsvLine());
+        }
+
+        [TestMethod]
+        public void CategoryBadgeColor_ReturnsCorrectColorForEachCategory()
+        {
+            var vm = new OperationStepViewModel();
+
+            vm.Category = OperationCategory.AddStructure;
+            Assert.IsNotNull(vm.CategoryBadgeColor);
+
+            vm.Category = OperationCategory.DeleteStructure;
+            Assert.IsNotNull(vm.CategoryBadgeColor);
+
+            vm.Category = OperationCategory.BooleanOperation;
+            Assert.IsNotNull(vm.CategoryBadgeColor);
+
+            vm.Category = OperationCategory.Margin;
+            Assert.IsNotNull(vm.CategoryBadgeColor);
+
+            vm.Category = OperationCategory.ConvertHighRes;
+            Assert.IsNotNull(vm.CategoryBadgeColor);
+        }
+
+        [TestMethod]
+        public void Execute_RemainingCategories_WithNullStructureSet_ReturnsFalseSafely()
+        {
+            var delVm = new OperationStepViewModel { Category = OperationCategory.DeleteStructure, TargetStructure = "Old" };
+            string delLog = "";
+            Assert.IsFalse(delVm.Execute(null, msg => delLog = msg));
+            Assert.AreEqual("Fail", delVm.Status);
+            Assert.IsTrue(delLog.Contains("StructureSet is null"));
+
+            var marginVm = new OperationStepViewModel { Category = OperationCategory.Margin, TargetStructure = "PTV", OrigStructure = "CTV" };
+            string marginLog = "";
+            Assert.IsFalse(marginVm.Execute(null, msg => marginLog = msg));
+            Assert.AreEqual("Fail", marginVm.Status);
+            Assert.IsTrue(marginLog.Contains("StructureSet is null"));
+
+            var hiResVm = new OperationStepViewModel { Category = OperationCategory.ConvertHighRes, TargetStructure = "GTV" };
+            string hiResLog = "";
+            Assert.IsFalse(hiResVm.Execute(null, msg => hiResLog = msg));
+            Assert.AreEqual("Fail", hiResVm.Status);
+            Assert.IsTrue(hiResLog.Contains("StructureSet is null"));
+        }
+
+        [TestMethod]
+        public void OperationItemViewModel_StatusAppearance_AllStatuses()
+        {
+            var vm = new OperationStepViewModel();
+
+            string[] statuses = { "Done", "OK", "Pass", "Warn", "Warning", "Ready", "Skip", "Fail", "Error", "--" };
+            foreach (var st in statuses)
+            {
+                vm.Status = st;
+                Assert.AreEqual(st, vm.Status);
+                Assert.IsNotNull(vm.StatusBrush);
+                Assert.IsNotNull(vm.StatusBorderBrush);
+                Assert.IsNotNull(vm.StatusForeground);
+            }
+        }
+
+        [TestMethod]
+        public void Margin_NegativeAndZeroMargins_ParsedCorrectly()
+        {
+            var vm = new OperationStepViewModel
+            {
+                Category = OperationCategory.Margin,
+                TargetStructure = "PTV_Shrunk",
+                OrigStructure = "CTV",
+                MarginGeometry = GeoType.Inner,
+                X1Text = "0",
+                X2Text = "-5",
+                Y1Text = "3",
+                Y2Text = "-2",
+                Z1Text = "0",
+                Z2Text = "-1"
+            };
+
+            var step = vm.ToTemplateStep();
+            Assert.IsNotNull(step.Margins);
+            Assert.AreEqual(0, step.Margins.X1);
+            Assert.AreEqual(-5, step.Margins.X2);
+            Assert.AreEqual(3, step.Margins.Y1);
+            Assert.AreEqual(-2, step.Margins.Y2);
+            Assert.AreEqual(0, step.Margins.Z1);
+            Assert.AreEqual(-1, step.Margins.Z2);
+        }
     }
 }

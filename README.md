@@ -1,8 +1,8 @@
-# AutoStructureMaker (v2.0.3)
+# AutoStructureMaker (v2.0.4)
 
 [![Eclipse v15.6 / v16.1](https://img.shields.io/badge/Varian%20Eclipse-v15.6%20%2F%20v16.1-blue.svg)](https://www.varian.com/)
 [![.NET Framework](https://img.shields.io/badge/.NET%20Framework-4.6.1-purple.svg)](https://dotnet.microsoft.com/)
-[![Tests](https://img.shields.io/badge/Unit%20Tests-60%20Passed-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Unit%20Tests-81%20Passed-brightgreen.svg)]()
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 VARIAN 社製放射線治療計画装置 **Eclipse (v15.6 / v16.1)** 向けの輪郭自動作成・編集支援スクリプト（ESAPI binary-plugin, Write-Access 型）です。
@@ -66,9 +66,9 @@ VARIAN 社製放射線治療計画装置 **Eclipse (v15.6 / v16.1)** 向けの�
 ## 🚀 導入・インストール方法
 
 1. **ビルド成果物の配置**:
-   ビルドによって生成された単一バイナリ `AutoStructureMaker_v2.0.3.esapi.dll`（Costura.Fody により依存 DLL が内包されています）を、Eclipse が参照可能なスクリプト共有フォルダに配置します。
+   ビルドによって生成された単一バイナリ `AutoStructureMaker_v2.0.4.esapi.dll`（Costura.Fody により依存 DLL が内包されています）を、Eclipse が参照可能なスクリプト共有フォルダに配置します。
 2. **ESAPI 承認 (Script Approval)**:
-   Eclipse 付属の管理者ツール「Script Approval」でスクリプトファイル（`AutoStructureMaker_v2.0.3.esapi.dll`）を登録・承認します（患者データを変更するため、Write-Access 権限の承認が必要です）。
+   Eclipse 付属の管理者ツール「Script Approval」でスクリプトファイル（`AutoStructureMaker_v2.0.4.esapi.dll`）を登録・承認します（患者データを変更するため、Write-Access 権限の承認が必要です）。
 3. **設定ファイル (`AutoStructureMaker.config.xml`) の配置**:
    施設固有の初期保存フォルダや既定値を設定した `AutoStructureMaker.config.xml` を、DLL と同一フォルダ、または `%APPDATA%\AutoStructureMaker\` に配置します（配置されていない場合は自動的にデフォルト設定が適用されます）。
 
@@ -77,7 +77,7 @@ VARIAN 社製放射線治療計画装置 **Eclipse (v15.6 / v16.1)** 向けの�
 ## 📖 操作方法
 
 1. **スクリプトの起動**:
-   Eclipse の「Tools」メニュー →「Scripts」から `AutoStructureMaker_v2.0.3.esapi.dll` を選択して実行します。
+   Eclipse の「Tools」メニュー →「Scripts」から `AutoStructureMaker_v2.0.4.esapi.dll` を選択して実行します。
 2. **テンプレートの読み込み**:
    「Load Template」ボタンを押し、保存済みの輪郭操作プロトコル（XML または CSV）を選択します。カード一覧にステップが自動展開されます。
 3. **ステップの追加・編集**:

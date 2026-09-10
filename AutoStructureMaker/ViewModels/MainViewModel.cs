@@ -313,17 +313,26 @@ namespace AutoStructure.ViewModels
                     currentContext[baseInfo.Id] = new StructureInfo(baseInfo.Id, baseInfo.IsHighResolution, baseInfo.DicomType, isNew: false);
                 }
 
+                // 1. 全ステップを同期中状態にし、入力値を事前に完全退避（多層防御）
+                var savedInputs = new List<SavedStepInput>(Operations.Count);
+                foreach (var op in Operations)
+                {
+                    op.IsSyncingContext = true;
+                    var stepVm = op as OperationStepViewModel;
+                    savedInputs.Add(new SavedStepInput
+                    {
+                        Operation = op,
+                        TargetStructure = op.TargetStructure,
+                        OrigStructure = stepVm?.OrigStructure,
+                        StructureA = stepVm?.StructureA,
+                        StructureB = stepVm?.StructureB
+                    });
+                }
+
+                // 2. 各ステップのコンテキスト同期とシミュレーション
                 for (int i = 0; i < Operations.Count; i++)
                 {
                     var op = Operations[i];
-                    op.IsSyncingContext = true;
-
-                    // 同期直前のユーザー入力値を保護・退避
-                    string savedTarget = op.TargetStructure;
-                    var stepVm = op as OperationStepViewModel;
-                    string savedOrig = stepVm?.OrigStructure;
-                    string savedStrA = stepVm?.StructureA;
-                    string savedStrB = stepVm?.StructureB;
 
                     // ステップ i 開始時点のコンテキストを要素単位で同期（参照は維持）
                     SyncCollection(op.AvailableStructures, currentContext.Keys);
@@ -331,29 +340,32 @@ namespace AutoStructure.ViewModels
                     op.ResolutionMap = currentContext.ToDictionary(k => k.Key, v => v.Value.IsHighResolution, StringComparer.OrdinalIgnoreCase);
                     op.NotifyResolutionChanged();
 
-                    // WPF ComboBox の選択解除イベントによる予期せぬ空文字上書きを多層防御で復元
-                    if (!string.IsNullOrEmpty(savedTarget) && string.IsNullOrEmpty(op.TargetStructure))
-                    {
-                        op.TargetStructure = savedTarget;
-                    }
-                    if (stepVm != null)
-                    {
-                        if (!string.IsNullOrEmpty(savedOrig) && string.IsNullOrEmpty(stepVm.OrigStructure))
-                        {
-                            stepVm.OrigStructure = savedOrig;
-                        }
-                        if (!string.IsNullOrEmpty(savedStrA) && string.IsNullOrEmpty(stepVm.StructureA))
-                        {
-                            stepVm.StructureA = savedStrA;
-                        }
-                        if (!string.IsNullOrEmpty(savedStrB) && string.IsNullOrEmpty(stepVm.StructureB))
-                        {
-                            stepVm.StructureB = savedStrB;
-                        }
-                    }
-
                     // ステップ i による輪郭の追加・変更・削除をシミュレート
                     ApplyStepToContext(op, currentContext);
+                }
+
+                // 3. WPF ComboBox 選択解除イベントによる予期せぬ空文字上書きを多層防御で復元
+                foreach (var saved in savedInputs)
+                {
+                    if (!string.IsNullOrEmpty(saved.TargetStructure) && string.IsNullOrEmpty(saved.Operation.TargetStructure))
+                    {
+                        saved.Operation.TargetStructure = saved.TargetStructure;
+                    }
+                    if (saved.Operation is OperationStepViewModel stepVm)
+                    {
+                        if (!string.IsNullOrEmpty(saved.OrigStructure) && string.IsNullOrEmpty(stepVm.OrigStructure))
+                        {
+                            stepVm.OrigStructure = saved.OrigStructure;
+                        }
+                        if (!string.IsNullOrEmpty(saved.StructureA) && string.IsNullOrEmpty(stepVm.StructureA))
+                        {
+                            stepVm.StructureA = saved.StructureA;
+                        }
+                        if (!string.IsNullOrEmpty(saved.StructureB) && string.IsNullOrEmpty(stepVm.StructureB))
+                        {
+                            stepVm.StructureB = saved.StructureB;
+                        }
+                    }
                 }
             }
             finally
@@ -566,10 +578,9 @@ namespace AutoStructure.ViewModels
             if (index < 0) return;
 
             var templateStep = item.ToTemplateStep();
-            var cloned = OperationItemViewModel.FromTemplateStep(templateStep, AvailableStructures, AvailableStructureInfos, StructureResolutionMap);
+            var cloned = OperationItemViewModel.FromTemplateStep(templateStep, item.AvailableStructures, item.AvailableStructureInfos, item.ResolutionMap);
             if (cloned != null)
             {
-                cloned.PropertyChanged += OnOperationPropertyChanged;
                 Operations.Insert(index + 1, cloned);
                 UpdateStepNumbers();
                 RefreshStepStructureContexts();
@@ -910,7 +921,6 @@ namespace AutoStructure.ViewModels
                         var op = OperationItemViewModel.FromTemplateStep(step, AvailableStructures, AvailableStructureInfos, StructureResolutionMap);
                         if (op != null)
                         {
-                            op.PropertyChanged += OnOperationPropertyChanged;
                             Operations.Add(op);
                         }
                     }
@@ -1000,6 +1010,15 @@ namespace AutoStructure.ViewModels
                     MessageBoxImage.Error
                 );
             }
+        }
+
+        private class SavedStepInput
+        {
+            public OperationItemViewModel Operation { get; set; }
+            public string TargetStructure { get; set; }
+            public string OrigStructure { get; set; }
+            public string StructureA { get; set; }
+            public string StructureB { get; set; }
         }
     }
 }

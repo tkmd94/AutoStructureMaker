@@ -33,10 +33,10 @@
 ### 1.1 Script Approval で承認されない / エラーになる
 - **現象**: Eclipse の Script Approval ツールに DLL を登録しようとするとエラーが発生する、または承認チェックボックスが有効にならない。
 - **原因**:
-  - `AutoStructureMaker_v2.0.3.esapi.dll` が適切な管理者権限で配置されていない。
+  - `AutoStructureMaker_v2.0.4.esapi.dll` が適切な管理者権限で配置されていない。
   - Web からダウンロードしたバイナリに Windows のセキュリティブロック（Mark of the Web）が付与されている。
 - **対処法**:
-  1. エクスプローラーで `AutoStructureMaker_v2.0.3.esapi.dll` を右クリック →「プロパティ」を開きます。
+  1. エクスプローラーで `AutoStructureMaker_v2.0.4.esapi.dll` を右クリック →「プロパティ」を開きます。
   2. 全般タブの一番下にある **「セキュリティ: 許可する（Unblock）」** にチェックを入れ、「OK」をクリックします。
   3. Eclipse の Script Approval ツールを管理者として実行し、再登録します。
 
@@ -49,7 +49,7 @@
   - このとき `Script` クラスが外部ライブラリ（`EsapiEssentials.ScriptBase` 等）を継承していると、Costura.Fody のモジュール初期化子（`.cctor` による内包 DLL の自動展開）が動く前に外部 DLL の解決に失敗し、`ReflectionTypeLoadException` がスローされて Eclipse 側でエントリポイントクラスが「存在しない」と判定されてしまいます。
 - **対処法（根本修正済み）**:
   - `AutoStructureMaker` では、`VMS.TPS.Script` を外部アセンブリに依存しない**純粋な POCO クラス（`System.Object` 継承）**として設計刷新し、`[MethodImpl(MethodImplOptions.NoInlining)]` で Eclipse ネイティブの実行エントリポイントを実装しています。
-  - 最新の `AutoStructureMaker_v2.0.3.esapi.dll` を配置してご利用ください。
+  - 最新の `AutoStructureMaker_v2.0.4.esapi.dll` を配置してご利用ください。
 
 ---
 
@@ -147,9 +147,11 @@
 - **原因**:
   - **原因 1 (バインディング更新タイミング)**: WPF `ComboBox` のテキストバインディング既定値が `LostFocus` である場合、ドロップダウンからアイテムを選択した直後や未確定フォーカス時に ViewModel へのプロパティ更新が遅延・喪失していました。
   - **原因 2 (選択解除イベントの逆流)**: スクリプト実行後やステップ操作時に輪郭リストのコンテキスト同期を行う際、WPF の `ComboBox` がアイテムコレクションの再評価を検知して内部的に `SelectedItem = null` を強制設定（Coerce）し、それが TwoWay バインディングを通じて ViewModel に空文字 `""` を書き戻していました。先行ステップで作成した輪郭が消去されると、後続ステップの候補からも連鎖的に消去される現象が発生していました。
-- **対策（v2.0.2 / v2.0.3 で根本修正・多層防御）**:
+  - **原因 3 (ステップ複製時のコレクション参照共有)**: ステップ複製（⧉ Duplicate）やテンプレート読込時に `AvailableStructureInfos` の同一インスタンスが複数ステップ間で参照共有されていた場合、先行ステップの同期によって共有コレクションから輪郭が一時的に除外された際、後続の複製ステップの ComboBox が連動して空文字を逆流させていました。
+- **対策（根本修正・多層防御）**:
   - **即時反映 (`UpdateSourceTrigger=PropertyChanged`)**: 全ての輪郭選択 ComboBox のバインディングに `UpdateSourceTrigger=PropertyChanged` を指定し、ドロップダウンでの選択・入力が遅延なく ViewModel へ即時反映されます。
-  - **同期中空文字遮断 (`IsSyncingContext` ガード)**: `OperationItemViewModel` に `IsSyncingContext` フラグを導入。コンテキスト同期処理中および ComboBox の選択解除イベントによって発生する空文字上書きをセッターレベルで厳密に遮断し、入力値を完全に保護しています。
+  - **ステップごとのコレクション完全独立化**: ステップ作成・複製・テンプレート読込のいずれにおいても、各ステップが独自の `ObservableCollection<StructureInfo>` を保持するよう改修。他ステップの同期処理が自カードの候補リストに影響を与えない独立構造に刷新。
+  - **全ステップ同期ガード & 入力値退避復元 (`IsSyncingContext` + Snapshot復元)**: 同期パイプライン開始時に全ステップで `IsSyncingContext = true` を設定して空文字上書きをセッターレベルで厳密遮断するとともに、同期前の入力値スナップショットを安全に復元する多層防御により、入力値を完全に保護しています。
 
 ---
 

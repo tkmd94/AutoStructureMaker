@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using AutoStructure.Common;
+using AutoStructure.ViewModels;
 
 namespace AutoStructureMaker.Tests
 {
@@ -179,6 +180,71 @@ namespace AutoStructureMaker.Tests
             Assert.AreEqual(2, loaded.Steps.Count);
             Assert.IsTrue(loaded.Steps[0].Enabled);
             Assert.IsFalse(loaded.Steps[1].Enabled);
+        }
+
+        [TestMethod]
+        public void SaveAndLoad_CsvTemplate_RoundtripSuccess()
+        {
+            var template = new StructureTemplate { ProtocolName = "CsvRoundtrip" };
+            template.Steps.Add(new TemplateStep { StepNumber = 1, Type = "Add", TargetStructure = "PTV_New", DicomType = "PTV" });
+            template.Steps.Add(new TemplateStep { StepNumber = 2, Type = "Del", TargetStructure = "Temp_Old" });
+            template.Steps.Add(new TemplateStep { StepNumber = 3, Type = "Boolean", TargetStructure = "Target_Sub", BooleanOperation = "SUB", StructureA = "CTV", StructureB = "Bladder" });
+            template.Steps.Add(new TemplateStep
+            {
+                StepNumber = 4,
+                Type = "Margin",
+                TargetStructure = "PTV_Margin",
+                OrigStructure = "CTV",
+                MarginGeometry = "Inner",
+                Margins = new MarginValues { X1 = 1, X2 = 2, Y1 = 3, Y2 = 4, Z1 = 5, Z2 = 6 }
+            });
+            template.Steps.Add(new TemplateStep { StepNumber = 5, Type = "ConvertHighRes", TargetStructure = "GTV" });
+
+            string csvPath = Path.Combine(_tempDir, "roundtrip.csv");
+            TemplateService.SaveTemplate(csvPath, template, asCsv: true);
+
+            var loaded = TemplateService.LoadTemplate(csvPath);
+            Assert.IsNotNull(loaded);
+            Assert.AreEqual(5, loaded.Steps.Count);
+
+            Assert.AreEqual("Add", loaded.Steps[0].Type);
+            Assert.AreEqual("PTV_New", loaded.Steps[0].TargetStructure);
+            Assert.AreEqual("PTV", loaded.Steps[0].DicomType);
+
+            Assert.AreEqual("Del", loaded.Steps[1].Type);
+            Assert.AreEqual("Temp_Old", loaded.Steps[1].TargetStructure);
+
+            Assert.AreEqual("Boolean", loaded.Steps[2].Type);
+            Assert.AreEqual("SUB", loaded.Steps[2].BooleanOperation);
+            Assert.AreEqual("Target_Sub", loaded.Steps[2].TargetStructure);
+
+            Assert.AreEqual("Margin", loaded.Steps[3].Type);
+            Assert.AreEqual("Inner", loaded.Steps[3].MarginGeometry);
+            Assert.AreEqual(1, loaded.Steps[3].Margins.X1);
+            Assert.AreEqual(6, loaded.Steps[3].Margins.Z2);
+
+            Assert.AreEqual("ConvertHighRes", loaded.Steps[4].Type);
+            Assert.AreEqual("GTV", loaded.Steps[4].TargetStructure);
+        }
+
+        [TestMethod]
+        public void CreateTemplate_FromViewModels_PopulatesMetadataAndSteps()
+        {
+            var ops = new System.Collections.Generic.List<OperationItemViewModel>
+            {
+                new OperationStepViewModel { Category = AutoStructure.OperationCategory.AddStructure, TargetStructure = "CTV" },
+                new OperationStepViewModel { Category = AutoStructure.OperationCategory.ConvertHighRes, TargetStructure = "CTV" }
+            };
+
+            var template = TemplateService.CreateTemplate(ops, "Prostate_VMAT", "Physicist_A", "Clinical template");
+
+            Assert.IsNotNull(template);
+            Assert.AreEqual("Prostate_VMAT", template.ProtocolName);
+            Assert.AreEqual("Physicist_A", template.Author);
+            Assert.AreEqual("Clinical template", template.Description);
+            Assert.AreEqual(2, template.Steps.Count);
+            Assert.AreEqual(1, template.Steps[0].StepNumber);
+            Assert.AreEqual(2, template.Steps[1].StepNumber);
         }
     }
 }

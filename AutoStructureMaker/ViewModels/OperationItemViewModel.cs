@@ -1184,15 +1184,16 @@ namespace AutoStructure.ViewModels
 
             if (sharedStructures != null)
             {
-                vm.AvailableStructures = sharedStructures;
+                vm.AvailableStructures = new ObservableCollection<string>(sharedStructures);
             }
             if (sharedStructureInfos != null)
             {
-                vm.AvailableStructureInfos = sharedStructureInfos;
+                vm.AvailableStructureInfos = new ObservableCollection<StructureInfo>(
+                    sharedStructureInfos.Select(s => new StructureInfo(s.Id, s.IsHighResolution, s.DicomType, s.IsNew)));
             }
             if (resolutionMap != null)
             {
-                vm.ResolutionMap = resolutionMap;
+                vm.ResolutionMap = new Dictionary<string, bool>(resolutionMap, StringComparer.OrdinalIgnoreCase);
             }
 
             return vm;

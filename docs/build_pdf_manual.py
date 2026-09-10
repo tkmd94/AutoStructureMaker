@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-AutoStructureMaker v2.0.3 - Comprehensive Technical & Clinical Manual PDF Generator
+AutoStructureMaker v2.0.4 - Comprehensive Technical & Clinical Manual PDF Generator
 Combines all 8 documentation files into a single, beautifully-styled, publication-grade PDF.
 """
 
@@ -82,7 +82,7 @@ CHAPTERS = [
         "num": "付録",
         "title": "更新履歴 (Changelog)",
         "source": "CHANGELOG.md",
-        "desc": "v2.0.3、v2.0.2、v2.0.1、v2.0.0、v1.0.0 のリリースノートおよび全重要変更履歴"
+        "desc": "v2.0.4、v2.0.3、v2.0.2、v2.0.1、v2.0.0、v1.0.0 のリリースノートおよび全重要変更履歴"
     }
 ]
 
@@ -214,14 +214,14 @@ def build_html_document():
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<title>AutoStructureMaker v2.0.3 総合技術・臨床運用マニュアル</title>
+<title>AutoStructureMaker v2.0.4 総合技術・臨床運用マニュアル</title>
 <style>
 /* ================= PAGE SETUP & BASE STYLING ================= */
 @page {{
     size: A4;
     margin: 18mm 16mm 20mm 16mm;
     @top-left {{
-        content: "AutoStructureMaker v2.0.3 総合マニュアル";
+        content: "AutoStructureMaker v2.0.4 総合マニュアル";
         font-family: 'Segoe UI', Meiryo, sans-serif;
         font-size: 8pt;
         color: #64748b;
@@ -707,11 +707,11 @@ document.addEventListener('DOMContentLoaded', function() {{
         <div class="cover-badge-row">
             <span class="badge-pill badge-blue">Varian Medical Systems Eclipse</span>
             <span class="badge-pill badge-purple">ESAPI v15.6 / v16.1</span>
-            <span class="badge-pill badge-green">Production Ready (v2.0.3)</span>
+            <span class="badge-pill badge-green">Production Ready (v2.0.4)</span>
         </div>
         <div class="cover-title-group">
             <h1 class="cover-product">AutoStructureMaker</h1>
-            <div class="cover-version">Version 2.0.3 (Released: 2026-09-07)</div>
+            <div class="cover-version">Version 2.0.4 (Released: 2026-09-10)</div>
             <div class="cover-subtitle">総合技術・臨床運用マニュアル</div>
             <div class="cover-desc">
                 本マニュアルは、放射線治療計画装置 Varian Eclipse における高精度輪郭自動作成・論理演算・マージン生成支援プラグイン 

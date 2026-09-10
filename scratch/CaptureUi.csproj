@@ -26,8 +26,8 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="AutoStructureMaker_v2.0.3.esapi">
-      <HintPath>..\AutoStructureMaker\bin\x64\Release\AutoStructureMaker_v2.0.3.esapi.dll</HintPath>
+    <Reference Include="AutoStructureMaker_v2.0.4.esapi">
+      <HintPath>..\AutoStructureMaker\bin\x64\Release\AutoStructureMaker_v2.0.4.esapi.dll</HintPath>
     </Reference>
     <Reference Include="VMS.TPS.Common.Model.API">
       <HintPath>$(EsapiDir)VMS.TPS.Common.Model.API.dll</HintPath>

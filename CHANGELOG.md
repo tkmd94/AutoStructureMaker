@@ -5,6 +5,23 @@ AutoStructureMaker のすべての重要な変更は、本ファイルに記録�
 
 ---
 
+## [2.0.4] - 2026-09-10
+
+### 🐛 修正 (Fixed)
+- **ステップ複製時におけるコレクション参照共有および ComboBox 選択値消失の修正**:
+  - `OperationItemViewModel.CreateFromTemplateStep` において、`sharedStructures` / `sharedStructureInfos` が渡された場合でも各ステップ ViewModel が独立した新規コレクションインスタンスを保持するように改修。
+  - `MainViewModel.RefreshStepStructureContexts` において、同期開始前に全ステップの `IsSyncingContext = true` を一括適用し、入力値を事前に完全退避・復元する多層防御を導入。複製した Boolean モジュール等でドロップダウン選択時に輪郭名が空欄化する現象を根絶。
+  - `MainViewModel.ExecuteDuplicateStep` および `ExecuteLoad` における `PropertyChanged` イベントの多重購読を解消。
+
+### 🌟 追加 (Added)
+- **自動単体テストの全方位拡充 (全 81 件 100% PASS)**:
+  - 複製ステップのコレクション独立性および WPF ComboBox 連携検証テストを追加。
+  - 4 種類の Boolean 操作（SUB, AND, OR, XOR）、マージン負数・0 パース、ToCsvLine、CategoryBadgeColor、Null 安全性、Pre-Flight Check エッジケース（StructureA/B 未入力、HiRes 対象非存在、パイプライン重複 Add、非存在 Del）、ステップ並べ替え（中間要素の MoveUp/MoveDown）等の網羅テストを追加し、テスト件数を 60 件から 81 件へ拡充。
+- **出力バイナリへのバージョン明記**:
+  - 生成される ESAPI プラグイン DLL 名を `AutoStructureMaker_v2.0.4.esapi.dll` に更新。
+
+---
+
 ## [2.0.3] - 2026-09-07
 
 ### 🐛 修正 (Fixed)

@@ -63,7 +63,7 @@ namespace UiCapture
                 // Theme.xaml をマージ
                 var themeDict = new ResourceDictionary
                 {
-                    Source = new Uri("pack://application:,,,/AutoStructureMaker_v2.0.3.esapi;component/Theme.xaml", UriKind.Absolute)
+                    Source = new Uri("pack://application:,,,/AutoStructureMaker_v2.0.4.esapi;component/Theme.xaml", UriKind.Absolute)
                 };
                 app.Resources.MergedDictionaries.Add(themeDict);
 
@@ -192,14 +192,33 @@ namespace UiCapture
                 lastStep.IsEnabled = false;
                 lastStep.SetStatusSkipped();
 
+                // Boolean モジュール (Step 4) の複製・輪郭選択動作の検証
+                var boolStep = vm.Operations.FirstOrDefault(o => (o as OperationStepViewModel)?.Category == OperationCategory.BooleanOperation) as OperationStepViewModel;
+                AssertTrue(boolStep != null, "Boolean step exists in operations");
+                vm.DuplicateStepCommand.Execute(boolStep);
+                int boolIdx = vm.Operations.IndexOf(boolStep);
+                var dupBool = vm.Operations[boolIdx + 1] as OperationStepViewModel;
+                AssertTrue(dupBool != null, "Duplicated Boolean step exists");
+                AssertTrue(dupBool.TargetStructure == boolStep.TargetStructure, "Initial duplicated TargetStructure preserved");
+                AssertTrue(dupBool.StructureA == boolStep.StructureA, "Initial duplicated StructureA preserved");
+                AssertTrue(dupBool.StructureB == boolStep.StructureB, "Initial duplicated StructureB preserved");
+
+                // 複製先で StructureA を Rectum, TargetStructure を Rectum_sub に変更
+                dupBool.TargetStructure = "Rectum_sub";
+                dupBool.StructureA = "Rectum";
+                dupBool.StructureB = "PTV_78Gy";
                 vm.RefreshStepStructureContexts();
-                vm.AppendLog("(SCENE 3) Duplicated Step 2 (Margin) and disabled Step 6 (Opacity 0.55).");
+                AssertTrue(dupBool.TargetStructure == "Rectum_sub", "Modified TargetStructure preserved after context sync");
+                AssertTrue(dupBool.StructureA == "Rectum", "Modified StructureA preserved after context sync");
+                AssertTrue(dupBool.StructureB == "PTV_78Gy", "Modified StructureB preserved after context sync");
+                vm.AppendLog("(SCENE 3) Verified Boolean duplication: Rectum_sub (StructureA=Rectum, StructureB=PTV_78Gy) preserved without clearing.");
 
                 control.UpdateLayout();
                 CaptureWindow(window, "UI_03_CardInteractions_DuplicateAndDisabled.png");
-                Console.WriteLine("  ✓ Scene 3 captured: Duplicated step and dimmed disabled card.");
+                Console.WriteLine("  ✓ Scene 3 captured: Duplicated step, duplicated Boolean step, and dimmed disabled card.");
 
                 // 元に戻す (複製したステップを削除)
+                vm.RemoveItemCommand.Execute(dupBool);
                 var dupStep = vm.Operations[2];
                 vm.RemoveItemCommand.Execute(dupStep);
                 lastStep.IsEnabled = true;
